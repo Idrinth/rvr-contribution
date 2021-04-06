@@ -21,7 +21,7 @@ function RvRContribution.OnInitialize()
 end
 function RvRContribution.OnCast(abilityId)
     RvRContribution.OnZone()
-    local data = Player.GetAbilityData(actionId)
+    local data = Player.GetAbilityData(abilityId)
     if not data then
         return
     end
