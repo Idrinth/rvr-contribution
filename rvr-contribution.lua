@@ -26,7 +26,7 @@ function RvRContribution.OnCast(abilityId)
         return
     end
     local name = data.name:match(L"(.*)\^(.*)")
-    if name == L"Gedup!" or name == L"Tzeentch Shall Remake You" or name == L"Stand, Coward!" or name == L"Rune of Life" or name == L"Breath of Sigmar" or name == L"Gift of Life" or then
+    if name == L"Gedup!" or name == L"Tzeentch Shall Remake You" or name == L"Stand, Coward!" or name == L"Rune of Life" or name == L"Breath of Sigmar" or name == L"Gift of Life" then
         data[GameData.Player.zone].rezz = data[GameData.Player.zone].rezz + 1
         data[GameData.Player.zone].used = true
         notify(GameData.Player.zone, data[GameData.Player.zone])
