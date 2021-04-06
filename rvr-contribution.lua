@@ -8,6 +8,7 @@ local timePQ = 0
 local lastBOStatus = ""
 function RvRContribution.OnInitialize()
     --Zoning
+    RegisterEventHandler(SystemData.Events.LOADING_END, "RvRContribution.OnZone")
     --Ressurection
     RegisterEventHandler(SystemData.Events.PLAYER_BEGIN_CAST, "RvRContribution.OnCast")
     --Battlefield-Objective capture
@@ -20,6 +21,9 @@ function RvRContribution.OnInitialize()
     RegisterEventHandler(SystemData.Events.CAMPAIGN_ZONE_UPDATED, "RvRContribution.OnZoneUpdate" )
 end
 function RvRContribution.OnCast(abilityId)
+    if GameData.Player.isInSiege or GameData.Player.isInScenario then
+        return
+    end
     RvRContribution.OnZone()
     local data = Player.GetAbilityData(abilityId)
     if not data then
@@ -33,12 +37,18 @@ function RvRContribution.OnCast(abilityId)
     end
 end
 function RvRContribution.OnZone()
+    if GameData.Player.isInSiege or GameData.Player.isInScenario then
+        return
+    end
     if not data[GameData.Player.zone] then
         data[GameData.Player.zone] = {rezz=0,kills=0,assist=0,boxes=0,boxAssists=0,capture=0,used=false}
     end
 end
 function RvRContribution.OnChat(updateType, filter)--SystemData.ChatLogFilters
     if updateType ~= SystemData.TextLogUpdate.ADDED then
+        return
+    end
+    if GameData.Player.isInSiege or GameData.Player.isInScenario then
         return
     end
     RvRContribution.OnZone()
@@ -62,15 +72,15 @@ function RvRContribution.OnChat(updateType, filter)--SystemData.ChatLogFilters
                 end
             end
         end
-    elseif filter == SystemData.ChatLogFilters.RENOWN then--and not GameData.Player.isInScenario and not GameData.Player.isInSiege then
+    elseif filter == SystemData.ChatLogFilters.RENOWN and not GameData.Player.isInScenario and not GameData.Player.isInSiege then
         local num = TextLogGetNumEntries("Combat") - 1
         local _, _, msg = TextLogGetEntry("Combat", num);
         d(msg)
-        if tostring(msg):match("^You get [0-9]+ renown from assisting [a-zA-Z]\\.$") then
+        if tostring(msg):match("^You get [0-9]+ renown from assisting [a-zA-Z]+\\.$") then
             data[GameData.Player.zone].assist = data[GameData.Player.zone].assist + 1
             data[GameData.Player.zone].used = true
             notify(GameData.Player.zone, data[GameData.Player.zone])
-        elseif tostring(msg):match("^You get [0-9]+ renown from killing [a-zA-Z]\\.$") then
+        elseif tostring(msg):match("^You get [0-9]+ renown from killing [a-zA-Z]+\\.$") then
             data[GameData.Player.zone].kills = data[GameData.Player.zone].kills + 1
             data[GameData.Player.zone].used = true
             notify(GameData.Player.zone, data[GameData.Player.zone])
@@ -120,6 +130,9 @@ function RvRContribution.OnUpdatePQ(elapsed)
     end
     lastBOStatus = ""
     timePQ = timePQ - 1
+    if GameData.Player.isInSiege or GameData.Player.isInScenario then
+        return
+    end
     local quests = GetActiveObjectivesData()
     for key, quest in pairs(quests) do
         if quest.isBattlefieldObjective and not quest.isKeep then
@@ -130,6 +143,9 @@ function RvRContribution.OnUpdatePQ(elapsed)
     end
 end
 function RvRContribution.OnPublicQuest()
+    if GameData.Player.isInSiege or GameData.Player.isInScenario then
+        return
+    end
     RvRContribution.OnZone()
     local quests = GetActiveObjectivesData()
     for key, quest in pairs(quests) do
