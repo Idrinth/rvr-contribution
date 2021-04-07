@@ -6,6 +6,7 @@ local timeNote = 0
 local timeNotify = 0
 local timePQ = 0
 local lastBOStatus = ""
+local previousBOStatus = ""
 function RvRContribution.OnInitialize()
     --Zoning
     RegisterEventHandler(SystemData.Events.LOADING_END, "RvRContribution.OnZone")
@@ -55,15 +56,16 @@ function RvRContribution.OnChat(updateType, filter)--SystemData.ChatLogFilters
     if filter == SystemData.ChatLogFilters.RVR then
         local num = TextLogGetNumEntries("Chat") - 1
         local _, _, msg = TextLogGetEntry("Chat", num);
-        if tostring(msg):match(" successfully returned the supplies!$") then
-            local name = tostring(msg):match("^([A-Za-z]+) successfully returned the supplies!$")
-            if name == tostring(GameData.Player.name) then
+        if msg:match(L" successfully returned the supplies!$") then
+            local name = msg:match(L"^(.+) successfully returned the supplies!$")
+            local playername = GameData.Player.name:match(L"(.*)\^(.*)")
+            if name == playername then
                 data[GameData.Player.zone].boxes = data[GameData.Player.zone].boxes + 1
                 data[GameData.Player.zone].used = true
                 notify(GameData.Player.zone, data[GameData.Player.zone])
             else
                 for _,player in pairs(GetGroupData()) do
-                    if player and player.name and tostring(player.name) == name then
+                    if player and player.name and player.name == name then
                         data[GameData.Player.zone].boxAssists = data[GameData.Player.zone].boxAssists + 1
                         data[GameData.Player.zone].used = true
                         notify(GameData.Player.zone, data[GameData.Player.zone])
@@ -75,12 +77,11 @@ function RvRContribution.OnChat(updateType, filter)--SystemData.ChatLogFilters
     elseif filter == SystemData.ChatLogFilters.RENOWN and not GameData.Player.isInScenario and not GameData.Player.isInSiege then
         local num = TextLogGetNumEntries("Combat") - 1
         local _, _, msg = TextLogGetEntry("Combat", num);
-        d(msg)
-        if tostring(msg):match("^You get [0-9]+ renown from assisting [a-zA-Z]+\\.$") then
+        if msg:match(L"^You get [0-9]+ renown from assisting .+\\.$") then
             data[GameData.Player.zone].assist = data[GameData.Player.zone].assist + 1
             data[GameData.Player.zone].used = true
             notify(GameData.Player.zone, data[GameData.Player.zone])
-        elseif tostring(msg):match("^You get [0-9]+ renown from killing [a-zA-Z]+\\.$") then
+        elseif msg:match(L"^You get [0-9]+ renown from killing .+\\.$") then
             data[GameData.Player.zone].kills = data[GameData.Player.zone].kills + 1
             data[GameData.Player.zone].used = true
             notify(GameData.Player.zone, data[GameData.Player.zone])
@@ -88,7 +89,7 @@ function RvRContribution.OnChat(updateType, filter)--SystemData.ChatLogFilters
     end
 end
 function notify(zone, values)
-    notifications[#notifications] = {towstring("Zone "..tostring(GetZoneName(zone)).." Kills: "..tostring(values.kills).." Assists: "..tostring(values.assist).." Boxes: "..tostring(values.boxes).." Box-Assists: "..tostring(values.boxAssists).." Captures: "..tostring(values.capture))}
+    notifications[#notifications] = {towstring(tostring(GetZoneName(zone)).." Kills: "..tostring(values.kills).." Assists: "..tostring(values.assist).." Boxes: "..tostring(values.boxes).." Box-Assists: "..tostring(values.boxAssists).." Captures: "..tostring(values.capture))}
 end
 function RvRContribution.OnUpdateNote(elapsed)
     timeNote = timeNote + elapsed
@@ -137,6 +138,11 @@ function RvRContribution.OnUpdatePQ(elapsed)
     for key, quest in pairs(quests) do
         if quest.isBattlefieldObjective and not quest.isKeep then
             for k,q in pairs(quest.Quest) do
+                if lastBOStatus ~= quest.name..q.name then
+                    previousBOStatus = quest.name..q.name
+                else
+                    previousBOStatus = ""
+                end
                 lastBOStatus = quest.name..q.name
             end 
         end
@@ -151,10 +157,9 @@ function RvRContribution.OnPublicQuest()
     for key, quest in pairs(quests) do
         if quest.isBattlefieldObjective and not quest.isKeep then
             for k,q in pairs(quest.Quest) do
-                if q.name == L"GENERATING" and lastBOStatus ~= "" and quest.name..q.name ~= lastBOStatus then
+                if q.name == L"GENERATING" and previousBOStatus ~= "" and quest.name..q.name ~= previousBOStatus then
                     data[GameData.Player.zone].capture = data[GameData.Player.zone].capture + 1
                     data[GameData.Player.zone].used = true
-                    lastBOStatus = quest.name..q.name
                     notify(GameData.Player.zone, data[GameData.Player.zone])
                     return
                 end
