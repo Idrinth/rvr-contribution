@@ -74,14 +74,14 @@ function RvRContribution.OnChat(updateType, filter)--SystemData.ChatLogFilters
                 end
             end
         end
-    elseif filter == SystemData.ChatLogFilters.RENOWN and not GameData.Player.isInScenario and not GameData.Player.isInSiege then
+    elseif filter == SystemData.ChatLogFilters.RENOWN then
         local num = TextLogGetNumEntries("Combat") - 1
         local _, _, msg = TextLogGetEntry("Combat", num);
-        if msg:match(L"^You get [0-9]+ renown from assisting .+\\.$") then
+        if msg:match(L"^You gain [0-9]+ renown from assisting") then
             data[GameData.Player.zone].assist = data[GameData.Player.zone].assist + 1
             data[GameData.Player.zone].used = true
             notify(GameData.Player.zone, data[GameData.Player.zone])
-        elseif msg:match(L"^You get [0-9]+ renown from killing .+\\.$") then
+        elseif msg:match(L"^You gain [0-9]+ renown from killing") then
             data[GameData.Player.zone].kills = data[GameData.Player.zone].kills + 1
             data[GameData.Player.zone].used = true
             notify(GameData.Player.zone, data[GameData.Player.zone])
@@ -89,7 +89,9 @@ function RvRContribution.OnChat(updateType, filter)--SystemData.ChatLogFilters
     end
 end
 function notify(zone, values)
-    notifications[#notifications] = {towstring(tostring(GetZoneName(zone)).." Kills: "..tostring(values.kills).." Assists: "..tostring(values.assist).." Boxes: "..tostring(values.boxes).." Box-Assists: "..tostring(values.boxAssists).." Captures: "..tostring(values.capture))}
+    local message = towstring(tostring(GetZoneName(zone)).." Kills: "..tostring(values.kills).." Assists: "..tostring(values.assist).." Boxes: "..tostring(values.boxes).." Box-Assists: "..tostring(values.boxAssists).." Captures: "..tostring(values.capture))
+    TextLogAddEntry("Chat", SystemData.ChatLogFilters.RVR, message)
+    notifications[#notifications] = {message}
 end
 function RvRContribution.OnUpdateNote(elapsed)
     timeNote = timeNote + elapsed
