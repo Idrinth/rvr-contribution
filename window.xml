@@ -1,4 +1,10 @@
 <Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <Windows>
+    	<Window name="RvRContributionTemplate">
+    		<Windows>
+    			<Label name="$parentPairing"></Label>
+    			<Label name="$parentStats"></Label>
+    		</Windows>
+    	</Window>
     </Windows>
 </Interface>

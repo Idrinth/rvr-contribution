@@ -5,7 +5,10 @@
 
 		<Author name="Idrinth"/>
 
-		<Description text="" />
+		<Description text="Tracks all known sources of contribution" />
+		<Dependencies>
+			<Dependency name="LibSlash" optional="true" />
+		</Dependencies>
 		<Files>
 			<File name="window.xml" />
             <File name="rvr-contribution.lua" />
@@ -18,6 +21,9 @@
             <CallFunction name="RvRContribution.OnUpdateNotification"/>
             <CallFunction name="RvRContribution.OnUpdatePQ"/>
 		</OnUpdate>
+		<SavedVariables>
+			<SavedVariable name="RvRContribution.Settings"/>
+		</SavedVariables>
 		<WARInfo>
 			<Categories>
 				<Category name="OTHER"/>
