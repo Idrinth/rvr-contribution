@@ -135,7 +135,7 @@ function RvRContribution.OnUpdateNotification(elapsed)
 end
 function RvRContribution.OnZoneUpdate(zoneId)
     local zone = GetCampaignZoneData( zoneId )
-    if zone.locked then
+    if not zone or zone.locked then
         RvRContribution.Settings[zoneId] = nil
     end
 end
