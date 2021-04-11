@@ -20,9 +20,9 @@ local RvRZones = {
         [8]="T3 Dwarf",
         [2]="T3 Dwarf",
 
-        [9]="T4 Dwarf",
-        [5]="T4 Dwarf",
-        [3]="T4 Dwarf",
+        [9]="Kadrin Valley",
+        [5]="Thunder Mountain",
+        [3]="Black Crag",
 
         [106]="T1 Empire",
         [100]="T1 Empire",
@@ -33,9 +33,9 @@ local RvRZones = {
         [102]="T3 Empire",
         [108]="T3 Empire",
 
-        [109]="T4 Empire",
-        [105]="T4 Empire",
-        [103]="T4 Empire",
+        [109]="Reikland",
+        [105]="Praag",
+        [103]="Chaos Wastes",
 
         [206]="T1 Elves",
         [200]="T1 Elves",
@@ -46,9 +46,9 @@ local RvRZones = {
         [202]="T3 Elves",
         [208]="T3 Elves",
 
-        [209]="T4 Elves",
-        [205]="T4 Elves",
-        [203]="T4 Elves",
+        [209]="Eateine",
+        [205]="Dragonwake",
+        [203]="Caledor",
     },
     [2] = {
         [6]="T1 Greenskin",
@@ -60,9 +60,9 @@ local RvRZones = {
         [8]="T3 Greenskin",
         [2]="T3 Greenskin",
 
-        [9]="T4 Greenskin",
-        [5]="T4 Greenskin",
-        [3]="T4 Greenskin",
+        [9]="Kadrin Valley",
+        [5]="Thunder Mountain",
+        [3]="Black Crag",
 
         [106]="T1 Chaos",
         [100]="T1 Chaos",
@@ -73,9 +73,9 @@ local RvRZones = {
         [102]="T3 Chaos",
         [108]="T3 Chaos",
 
-        [109]="T4 Chaos",
-        [105]="T4 Chaos",
-        [103]="T4 Chaos",
+        [109]="Reikland",
+        [105]="Praag",
+        [103]="Chaos Wastes",
 
         [206]="T1 Elves",
         [200]="T1 Elves",
@@ -86,9 +86,9 @@ local RvRZones = {
         [202]="T3 Elves",
         [208]="T3 Elves",
 
-        [209]="T4 Elves",
-        [205]="T4 Elves",
-        [203]="T4 Elves",
+        [209]="Eateine",
+        [205]="Dragonwake",
+        [203]="Caledor",
     },
 }
 local resses = {
