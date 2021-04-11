@@ -242,6 +242,8 @@ function RvRContribution.OnCast(abilityId)
     end
 end
 function RvRContribution.OnZone()
+    aao = 1
+    aaoBuffId = 0
     if isInAllowedZone() then
         if not RvRContribution.Settings[RvRZones[GameData.Player.realm][GameData.Player.zone]] then
             RvRContribution.Settings[RvRZones[GameData.Player.realm][GameData.Player.zone]] = {rezz=0,kills=0,assist=0,boxes=0,boxAssists=0,capture=0,used=false,value=0}
@@ -366,17 +368,15 @@ function RvRContribution.OnBuff(updatedBuffsTable, isFullList)
     local deactivate = false
     for buffId, buffData in pairs( updatedBuffsTable ) do
         if buffData.name ~= nil then
-            if buffData.ID == 24658 then
+            if buffData.abilityId == 24658 then--AAO
                 aaoBuffId = buffId
-                local percentage = string.match(tostring(buffData.effectText), '%d%d%d')
-                aao = tonumber(percentage)/100
-                d(aao)
+                local percentage = string.match(tostring(buffData.effectText), 'increased by ([0-9]+)%%')
+                aao = 1 + tonumber(percentage)/100
                 return
             end
         elseif aaoBuffId == buffId then
             aao = 1
             aaoBuffId = 0
-            d(aao)
             return    
         end
     end
