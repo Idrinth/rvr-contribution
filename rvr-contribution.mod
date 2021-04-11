@@ -17,7 +17,6 @@
             <CallFunction name="RvRContribution.OnInitialize" />
 		</OnInitialize>
 		<OnUpdate>
-            <CallFunction name="RvRContribution.OnUpdateNote"/>
             <CallFunction name="RvRContribution.OnUpdateNotification"/>
             <CallFunction name="RvRContribution.OnUpdatePQ"/>
 		</OnUpdate>

@@ -1,10 +1,45 @@
 <Interface xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <Windows>
-    	<Window name="RvRContributionTemplate">
+    	<Label name="RvRContribution" font="font_default_text_small" textalign="center" savesettings="true">
+            <Size>
+                <AbsPoint x="200" y="30" />
+            </Size>
+	        <Anchors>
+	            <Anchor point="topleft" relativePoint="topleft" relativeTo="Root">
+	                <AbsPoint x="0" y="0" />
+	            </Anchor>
+	        </Anchors>
+        </Label>
+    	<Window name="RvRContributionTemplate" handleinput="true">
+            <Size>
+                <AbsPoint x="200" y="30" />
+            </Size>
     		<Windows>
-    			<Label name="$parentPairing"></Label>
-    			<Label name="$parentStats"></Label>
+    			<Label handleinput="false" name="$parentPairing" font="font_default_text_small" textalign="left">
+                    <Size>
+                        <AbsPoint x="125" y="30" />
+                    </Size>
+                    <Anchors>
+                        <Anchor point="topleft" relativePoint="topleft" relativeTo="$parent">
+                            <AbsPoint x="0" y="6" />
+                        </Anchor>
+                    </Anchors>
+                </Label>
+    			<Label handleinput="false" name="$parentPoints" font="font_default_text_small" textalign="right">
+                    <Size>
+                        <AbsPoint x="75" y="30" />
+                    </Size>
+                    <Anchors>
+                        <Anchor point="topright" relativePoint="topright" relativeTo="$parent">
+                            <AbsPoint x="0" y="6" />
+                        </Anchor>
+                    </Anchors>
+                </Label>
     		</Windows>
+    		<EventHandlers>
+    			<EventHandler event="OnMouseOver" function="RvRContribution.OnHover"/>
+    			<EventHandler event="OnRButtonUp" function="RvRContribution.OnRButtonUp"/>
+    		</EventHandlers>
     	</Window>
     </Windows>
 </Interface>
