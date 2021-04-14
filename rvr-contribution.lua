@@ -8,7 +8,7 @@ local lastBOStatus = ""
 local previousBOStatus = ""
 local aao = 1
 local aaoBuffId = 0
-local points = {rezz=10,kills=25,assist=1,boxes=150,boxAssists=30,capture=5}
+local points = {heal=0,damage=0,deaths=0,rezz=10,kills=25,assist=1,boxes=150,boxAssists=30,capture=5}
 local RvRZones = {
     [1] = {
         [6]="T1 Dwarf",
@@ -136,14 +136,26 @@ local function notify(zone)
     end
     notifications[name] = {towstring(name..": "..tostring(math.floor(values.value)))}
 end
-local function add(key)
-    if RvRContribution.Settings[RvRZones[GameData.Player.realm][GameData.Player.zone]].value == nil then
-        RvRContribution.Settings[RvRZones[GameData.Player.realm][GameData.Player.zone]].value = 0
+local function add(key, amount)
+    if amount == nil then
+        amount = 1
     end
-    RvRContribution.Settings[RvRZones[GameData.Player.realm][GameData.Player.zone]][key] = RvRContribution.Settings[RvRZones[GameData.Player.realm][GameData.Player.zone]][key] + 1
-    RvRContribution.Settings[RvRZones[GameData.Player.realm][GameData.Player.zone]].used = true
-    RvRContribution.Settings[RvRZones[GameData.Player.realm][GameData.Player.zone]].value = RvRContribution.Settings[RvRZones[GameData.Player.realm][GameData.Player.zone]].value + points[key] * aao / RvRContribution.Settings[RvRZones[GameData.Player.realm][GameData.Player.zone]][key] 
-    notify(GameData.Player.zone)
+    local zone = RvRZones[GameData.Player.realm][GameData.Player.zone]
+    if RvRContribution.Settings[zone].value == nil then
+        RvRContribution.Settings[zone].value = 0
+    end
+    if RvRContribution.Settings[zone][key] == nil then
+        RvRContribution.Settings[zone][key] = 0
+    end
+    RvRContribution.Settings[zone].used = true
+    local value = RvRContribution.Settings[zone].value
+    for i=1,amount do
+        RvRContribution.Settings[zone][key] = RvRContribution.Settings[zone][key] + 1
+        RvRContribution.Settings[zone].value = RvRContribution.Settings[zone].value + points[key] * aao / RvRContribution.Settings[zone][key] 
+    end
+    if value ~= RvRContribution.Settings[zone].value then
+        notify(GameData.Player.zone)
+    end
     ui()
 end
 local function slash(input)
@@ -158,12 +170,15 @@ function RvRContribution.OnHover()
     values = RvRContribution.Settings[zone]
     Tooltips.CreateTextOnlyTooltip ( SystemData.MouseOverWindow.name )
     Tooltips.SetTooltipText( 1, 1, towstring(zone))
-    Tooltips.SetTooltipText( 2, 1, towstring(values.rezz)..L" Resses")
-    Tooltips.SetTooltipText( 3, 1, towstring(values.kills)..L" Kills")
-    Tooltips.SetTooltipText( 4, 1, towstring(values.assist)..L" Assists")
-    Tooltips.SetTooltipText( 5, 1, towstring(values.boxes)..L" Boxes")
-    Tooltips.SetTooltipText( 6, 1, towstring(values.boxAssists)..L" Box-Assists")
-    Tooltips.SetTooltipText( 7, 1, towstring(values.capture)..L" Captures")
+    Tooltips.SetTooltipText( 2, 1, towstring(values.rezz or 0)..L" Resses")
+    Tooltips.SetTooltipText( 3, 1, towstring(values.heal or 0)..L" Heal")
+    Tooltips.SetTooltipText( 4, 1, towstring(values.deaths or 0)..L" Deaths")
+    Tooltips.SetTooltipText( 5, 1, towstring(values.kills or 0)..L" Kills")
+    Tooltips.SetTooltipText( 6, 1, towstring(values.assist or 0)..L" Assists")
+    Tooltips.SetTooltipText( 7, 1, towstring(values.damage or 0)..L" Damage")
+    Tooltips.SetTooltipText( 8, 1, towstring(values.boxes or 0)..L" Boxes")
+    Tooltips.SetTooltipText( 9, 1, towstring(values.boxAssists or 0)..L" Box-Assists")
+    Tooltips.SetTooltipText( 10, 1, towstring(values.capture or 0)..L" Captures")
     Tooltips.Finalize()
     local rootWidth,rootHeight = WindowGetDimensions("Root")
     local mglX,mglY = WindowGetScreenPosition(mouseWin)
@@ -182,7 +197,7 @@ function RvRContribution.OnRButtonUp()
         return
     end
     zone = zone:gsub("_", " ")
-    RvRContribution.Settings[zone] = {rezz=0,kills=0,assist=0,boxes=0,boxAssists=0,capture=0,used=false,value=0}
+    RvRContribution.Settings[zone] = {heal=0,damage=0,rezz=0,kills=0,assist=0,boxes=0,boxAssists=0,capture=0,used=false,value=0}
     ui()
 end
 function RvRContribution.OnInitialize()
@@ -196,6 +211,8 @@ function RvRContribution.OnInitialize()
     RegisterEventHandler(SystemData.Events.PLAYER_BEGIN_CAST, "RvRContribution.OnCast")
     --Battlefield-Objective capture
     RegisterEventHandler(SystemData.Events.PUBLIC_QUEST_UPDATED, "RvRContribution.OnPublicQuest")
+    --Deaths
+    RegisterEventHandler(SystemData.Events.PLAYER_DEATH, "RvRContribution.OnDeath")
     -- Assists&Kills
     RegisterEventHandler(TextLogGetUpdateEventId( "Combat" ), "RvRContribution.OnChat" )
     --box carrying
@@ -203,6 +220,8 @@ function RvRContribution.OnInitialize()
     --reset
     RegisterEventHandler(SystemData.Events.CAMPAIGN_ZONE_UPDATED, "RvRContribution.OnZoneUpdate" )
     RegisterEventHandler(SystemData.Events.CAMPAIGN_PAIRING_UPDATED, "RvRContribution.OnPairingUpdate" )
+    -- combat actions
+    RegisterEventHandler( SystemData.Events.WORLD_OBJ_COMBAT_EVENT, "RvRContribution.OnCombatAction")
     -- commands
     if LibSlash and LibSlash.RegisterSlashCmd then
         LibSlash.RegisterSlashCmd( "rvr-contribution", slash )
@@ -371,6 +390,32 @@ function RvRContribution.OnBuff(updatedBuffsTable, isFullList)
             aao = 1
             aaoBuffId = 0
             return    
+        end
+    end
+end
+function RvRContribution.OnDeath()
+    if not isInAllowedZone() then
+        return
+    end
+    if not GameData.Player.isInRvRLake then
+        return
+    end
+    if GameData.Player.hitPoints.current > 0 then
+        return
+    end
+    if GameData.Player.killerName == L"" then
+        return
+    end
+    add('deaths')
+end
+function RvRContribution.OnCombatAction( hitTargetObjectNumber, hitAmount, textType )
+    if GameData.Player.worldObjNum ~= hitTargetObjectNumber then
+        if textType == GameData.CombatEvent.HIT or textType == GameData.CombatEvent.ABILITY_HIT or textType == GameData.CombatEvent.CRITICAL or textType == GameData.CombatEvent.ABILITY_CRITICAL then
+            if hitAmount < 0 then
+                add('damage', -1 * hitAmount)
+            elseif SimpleCombatText.Settings.outgoingHealEnabled and hitAmount >= SimpleCombatText.Settings.lowerLimitHit then
+                add('heal', hitAmount)
+            end
         end
     end
 end
