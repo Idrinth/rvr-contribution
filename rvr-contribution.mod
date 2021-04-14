@@ -3,7 +3,7 @@
 	<UiMod name="RvRContribution" version="1.0.0" date="2021-04-04" >
     <VersionSettings gameVersion="1.4.8" windowsVersion="1.40" savedVariablesVersion="1.50" />
 
-		<Author name="Idrinth"/>
+		<Author name="Idrinth+Filsk"/>
 
 		<Description text="Tracks all known sources of contribution" />
 		<Dependencies>

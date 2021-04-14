@@ -8,7 +8,7 @@ local lastBOStatus = ""
 local previousBOStatus = ""
 local aao = 1
 local aaoBuffId = 0
-local points = {rezz=10,kills=25,assist=5,boxes=150,boxAssists=30,capture=5}
+local points = {rezz=10,kills=25,assist=1,boxes=150,boxAssists=30,capture=5}
 local RvRZones = {
     [1] = {
         [6]="T1 Dwarf",
@@ -120,7 +120,7 @@ local function ui()
             WindowClearAnchors(window)
             WindowAddAnchor(window, "topleft", "RvRContribution", "topleft", 0, counter*30)
             LabelSetText(window.."Pairing", towstring(pairing))
-            LabelSetText(window.."Points", towstring(data.value))
+            LabelSetText(window.."Points", towstring(math.floor(data.value)))
             LabelSetTextColor(window.."Pairing",255,255,255)
             LabelSetTextColor(window.."Points",255,255,255)
         elseif DoesWindowExist(window) then
@@ -129,22 +129,12 @@ local function ui()
     end
 end
 local function notify(zone)
-    local values = RvRContribution.Settings[zone]
+    local name = RvRZones[GameData.Player.realm][GameData.Player.zone]
+    local values = RvRContribution.Settings[name]
     if not values then
         return
     end
-    local message = towstring(
-        zone
-        .." Resses: "..tostring(values.rezz)
-        .." Kills: "..tostring(values.kills)
-        .." Assists: "..tostring(values.assist)
-        .." Boxes: "..tostring(values.boxes)
-        .." Box-Assists: "..tostring(values.boxAssists)
-        .." Captures: "..tostring(values.capture)
-        .." Contribution: "..tostring(values.value)
-    )
-    TextLogAddEntry("Chat", SystemData.ChatLogFilters.RVR, message)
-    notifications[zone] = {"Contribution: "..tostring(values.value)}
+    notifications[name] = {towstring(name..": "..tostring(math.floor(values.value)))}
 end
 local function add(key)
     if RvRContribution.Settings[RvRZones[GameData.Player.realm][GameData.Player.zone]].value == nil then
@@ -152,7 +142,7 @@ local function add(key)
     end
     RvRContribution.Settings[RvRZones[GameData.Player.realm][GameData.Player.zone]][key] = RvRContribution.Settings[RvRZones[GameData.Player.realm][GameData.Player.zone]][key] + 1
     RvRContribution.Settings[RvRZones[GameData.Player.realm][GameData.Player.zone]].used = true
-    RvRContribution.Settings[RvRZones[GameData.Player.realm][GameData.Player.zone]].value = RvRContribution.Settings[RvRZones[GameData.Player.realm][GameData.Player.zone]].value + points[key] * aao
+    RvRContribution.Settings[RvRZones[GameData.Player.realm][GameData.Player.zone]].value = RvRContribution.Settings[RvRZones[GameData.Player.realm][GameData.Player.zone]].value + points[key] * aao / RvRContribution.Settings[RvRZones[GameData.Player.realm][GameData.Player.zone]][key] 
     notify(GameData.Player.zone)
     ui()
 end
@@ -188,6 +178,9 @@ end
 function RvRContribution.OnRButtonUp()
     local mouseWin = SystemData.MouseOverWindow.name
     local zone = mouseWin:match("^RvRContribution(.+)$")
+    if not zone then
+        return
+    end
     zone = zone:gsub("_", " ")
     RvRContribution.Settings[zone] = {rezz=0,kills=0,assist=0,boxes=0,boxAssists=0,capture=0,used=false,value=0}
     ui()
@@ -198,7 +191,7 @@ function RvRContribution.OnInitialize()
     --Zoning
     RegisterEventHandler(SystemData.Events.LOADING_END, "RvRContribution.OnZone")
     --AAO
-    RegisterEventHandler(SystemData.Events.PLAYER_EFFECTS_UPDATED, "RvRContribution.OnBuff")
+    --RegisterEventHandler(SystemData.Events.PLAYER_EFFECTS_UPDATED, "RvRContribution.OnBuff")
     --Ressurection
     RegisterEventHandler(SystemData.Events.PLAYER_BEGIN_CAST, "RvRContribution.OnCast")
     --Battlefield-Objective capture
