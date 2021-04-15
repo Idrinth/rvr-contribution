@@ -167,6 +167,8 @@ local function slash(input)
         end
     elseif input == "alert" then
         RvRContribution.Config.alert = not RvRContribution.Config.alert
+    else
+        TextLogAddEntry("Chat", SystemData.ChatLogFilters.SAY, L"Avaible commands: alert, dump")
     end
 end
 function RvRContribution.OnHover()
