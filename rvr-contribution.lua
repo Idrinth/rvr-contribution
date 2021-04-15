@@ -1,7 +1,7 @@
 RvRContribution = {}
 
 local notifications = {}
-local timeNote = 0
+local timeNotify = 0
 local timePQ = 0
 local lastBOStatus = ""
 local previousBOStatus = ""
