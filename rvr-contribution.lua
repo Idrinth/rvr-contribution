@@ -2,13 +2,12 @@ RvRContribution = {}
 
 local notifications = {}
 local timeNote = 0
-local timeNotify = 0
 local timePQ = 0
 local lastBOStatus = ""
 local previousBOStatus = ""
 local aao = 1
 local aaoBuffId = 0
-local points = {heal=0,damage=0,deaths=0,rezz=10,kills=25,assist=1,boxes=150,boxAssists=30,capture=5}
+local points = {heal=2.5,damage=2,deaths=0,rezz=10,kills=10,assist=5,boxes=50,boxAssists=10,capture=5}
 local RvRZones = {
     [1] = {
         [6]="T1 Dwarf",
@@ -110,7 +109,7 @@ local function isInAllowedZone()
 end
 local function ui()
     local counter=0
-    for pairing, data in pairs(RvRContribution.Settings) do
+    for pairing, data in pairs(RvRContribution.Zones) do
         local window = "RvRContribution"..pairing:gsub(" ","_")
         if data.used then
             counter = counter + 1
@@ -129,8 +128,8 @@ local function ui()
     end
 end
 local function notify(zone)
-    local name = RvRZones[GameData.Player.realm][GameData.Player.zone]
-    local values = RvRContribution.Settings[name]
+    local name = RvRZones[GameData.Player.realm][zone]
+    local values = RvRContribution.Zones[name]
     if not values then
         return
     end
@@ -141,33 +140,40 @@ local function add(key, amount)
         amount = 1
     end
     local zone = RvRZones[GameData.Player.realm][GameData.Player.zone]
-    if RvRContribution.Settings[zone].value == nil then
-        RvRContribution.Settings[zone].value = 0
+    if RvRContribution.Zones[zone] == nil then--to fix a weird bug where onload doesn't work
+        RvRContribution.Zones[zone] = {}
     end
-    if RvRContribution.Settings[zone][key] == nil then
-        RvRContribution.Settings[zone][key] = 0
+    if RvRContribution.Zones[zone].value == nil then
+        RvRContribution.Zones[zone].value = 0
     end
-    RvRContribution.Settings[zone].used = true
-    local value = RvRContribution.Settings[zone].value
+    if RvRContribution.Zones[zone][key] == nil then
+        RvRContribution.Zones[zone][key] = 0
+    end
+    RvRContribution.Zones[zone].used = true
+    local value = RvRContribution.Zones[zone].value
     for i=1,amount do
-        RvRContribution.Settings[zone][key] = RvRContribution.Settings[zone][key] + 1
-        RvRContribution.Settings[zone].value = RvRContribution.Settings[zone].value + points[key] * aao / RvRContribution.Settings[zone][key] 
+        RvRContribution.Zones[zone][key] = RvRContribution.Zones[zone][key] + 1
+        RvRContribution.Zones[zone].value = RvRContribution.Zones[zone].value + points[key] * aao / RvRContribution.Zones[zone][key] 
     end
-    if value ~= RvRContribution.Settings[zone].value then
+    if math.floor(value) ~= math.floor(RvRContribution.Zones[zone].value) and RvRContribution.Config.alert then
         notify(GameData.Player.zone)
     end
     ui()
 end
 local function slash(input)
-    for zone, values in pairs(RvRContribution.Settings) do
-        notify(zone)
+    if input == "dump" then
+        for zone, values in pairs(RvRContribution.Zones) do
+            notify(zone)
+        end
+    elseif input == "alert" then
+        RvRContribution.Config.alert = not RvRContribution.Config.alert
     end
 end
 function RvRContribution.OnHover()
     local mouseWin = SystemData.MouseOverWindow.name
     local zone = mouseWin:match("^RvRContribution(.+)$")
     zone = zone:gsub("_", " ")
-    values = RvRContribution.Settings[zone]
+    values = RvRContribution.Zones[zone]
     Tooltips.CreateTextOnlyTooltip ( SystemData.MouseOverWindow.name )
     Tooltips.SetTooltipText( 1, 1, towstring(zone))
     Tooltips.SetTooltipText( 2, 1, towstring(values.rezz or 0)..L" Resses")
@@ -197,16 +203,17 @@ function RvRContribution.OnRButtonUp()
         return
     end
     zone = zone:gsub("_", " ")
-    RvRContribution.Settings[zone] = {heal=0,damage=0,rezz=0,kills=0,assist=0,boxes=0,boxAssists=0,capture=0,used=false,value=0}
+    RvRContribution.Zones[zone] = {heal=0,damage=0,rezz=0,kills=0,assist=0,boxes=0,boxAssists=0,capture=0,used=false,value=0}
     ui()
 end
 function RvRContribution.OnInitialize()
-    RvRContribution.Settings = RvRContribution.Settings or {}
+    RvRContribution.Zones = RvRContribution.Zones or {}
+    RvRContribution.Config = RvRContribution.Config or {alert=true}
     RvRContribution.OnZone()
     --Zoning
     RegisterEventHandler(SystemData.Events.LOADING_END, "RvRContribution.OnZone")
     --AAO
-    --RegisterEventHandler(SystemData.Events.PLAYER_EFFECTS_UPDATED, "RvRContribution.OnBuff")
+    RegisterEventHandler(SystemData.Events.PLAYER_EFFECTS_UPDATED, "RvRContribution.OnBuff")
     --Ressurection
     RegisterEventHandler(SystemData.Events.PLAYER_BEGIN_CAST, "RvRContribution.OnCast")
     --Battlefield-Objective capture
@@ -257,8 +264,8 @@ function RvRContribution.OnZone()
     aao = 1
     aaoBuffId = 0
     if isInAllowedZone() then
-        if not RvRContribution.Settings[RvRZones[GameData.Player.realm][GameData.Player.zone]] then
-            RvRContribution.Settings[RvRZones[GameData.Player.realm][GameData.Player.zone]] = {rezz=0,kills=0,assist=0,boxes=0,boxAssists=0,capture=0,used=false,value=0}
+        if not RvRContribution.Zones[RvRZones[GameData.Player.realm][GameData.Player.zone]] then
+            RvRContribution.Zones[RvRZones[GameData.Player.realm][GameData.Player.zone]] = {rezz=0,kills=0,assist=0,boxes=0,boxAssists=0,capture=0,used=false,value=0}
         end
     end
     for zone, _ in pairs(RvRZones[1]) do
@@ -320,8 +327,17 @@ end
 function RvRContribution.OnZoneUpdate(zoneId)
     local zone = GetCampaignZoneData( zoneId )
     if not zone or zone.locked then
-        RvRContribution.Settings[RvRZones[GameData.Player.realm][zoneId]] = nil
-        local window = "RvRContribution"..RvRZones[GameData.Player.realm][zoneId]:gsub(" ","_")
+        local name = RvRZones[GameData.Player.realm][zoneId]
+        if not name or not RvRContribution.Zones[name] then
+            return
+        end
+        local message = name;
+        for key,value in pairs(RvRContribution.Zones[name]) do
+            message = message.." "..key..": "..tostring(value)
+        end
+        TextLogAddEntry("Chat", SystemData.ChatLogFilters.RVR, towstring(message))
+        RvRContribution.Zones[name] = nil
+        local window = "RvRContribution"..name:gsub(" ","_")
         if DoesWindowExist(window) then
             DestroyWindow(window)
         end
@@ -413,7 +429,7 @@ function RvRContribution.OnCombatAction( hitTargetObjectNumber, hitAmount, textT
         if textType == GameData.CombatEvent.HIT or textType == GameData.CombatEvent.ABILITY_HIT or textType == GameData.CombatEvent.CRITICAL or textType == GameData.CombatEvent.ABILITY_CRITICAL then
             if hitAmount < 0 then
                 add('damage', -1 * hitAmount)
-            elseif SimpleCombatText.Settings.outgoingHealEnabled and hitAmount >= SimpleCombatText.Settings.lowerLimitHit then
+            elseif SimpleCombatText.Zones.outgoingHealEnabled and hitAmount >= SimpleCombatText.Zones.lowerLimitHit then
                 add('heal', hitAmount)
             end
         end
