@@ -431,7 +431,7 @@ function RvRContribution.OnCombatAction( hitTargetObjectNumber, hitAmount, textT
         if textType == GameData.CombatEvent.HIT or textType == GameData.CombatEvent.ABILITY_HIT or textType == GameData.CombatEvent.CRITICAL or textType == GameData.CombatEvent.ABILITY_CRITICAL then
             if hitAmount < 0 then
                 add('damage', -1 * hitAmount)
-            elseif SimpleCombatText.Zones.outgoingHealEnabled and hitAmount >= SimpleCombatText.Zones.lowerLimitHit then
+            elseif hitAmount > 0 then
                 add('heal', hitAmount)
             end
         end
