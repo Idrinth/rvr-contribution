@@ -171,6 +171,23 @@ local function slash(input)
         TextLogAddEntry("Chat", SystemData.ChatLogFilters.SAY, L"Avaible commands: alert, dump")
     end
 end
+function resetZone(zone)
+    local message = zone;
+    for key,value in pairs(RvRContribution.Zones[zone]) do
+        if key ~= "used" then
+            message = message.." "..key..": "..tostring(math.floor(value))
+        end
+    end
+    TextLogAddEntry("Chat", SystemData.ChatLogFilters.RVR, towstring(message))
+    TextLogAddEntry("RvRContribution", 90000, towstring(message))
+    RvRContribution.Zones[zone] = nil
+    local window = "RvRContribution"..zone:gsub(" ","_")
+    if DoesWindowExist(window) then
+        DestroyWindow(window)
+    end
+    RvRContribution.Zones[zone] = {heal=0,damage=0,rezz=0,kills=0,assist=0,boxes=0,boxAssists=0,capture=0,used=false,value=0}
+    ui()
+end
 function RvRContribution.OnHover()
     local mouseWin = SystemData.MouseOverWindow.name
     local zone = mouseWin:match("^RvRContribution(.+)$")
@@ -205,8 +222,7 @@ function RvRContribution.OnRButtonUp()
         return
     end
     zone = zone:gsub("_", " ")
-    RvRContribution.Zones[zone] = {heal=0,damage=0,rezz=0,kills=0,assist=0,boxes=0,boxAssists=0,capture=0,used=false,value=0}
-    ui()
+    resetZone(zone)
 end
 function RvRContribution.OnInitialize()
     RvRContribution.Zones = RvRContribution.Zones or {}
@@ -242,6 +258,10 @@ function RvRContribution.OnInitialize()
     LabelSetTextColor("RvRContribution",255,255,255)
     LayoutEditor.RegisterWindow("RvRContribution", L"RvRContribution",L"", false, false, true, nil )
     ui()
+    --log
+    TextLogCreate("RvRContribution", 9000)
+    TextLogSetIncrementalSaving( "RvRContribution", true, L"logs/rvrcontribution.log")
+    TextLogSetEnabled("RvRContribution", true )
 end
 function RvRContribution.OnPairingUpdate( pairingId )
     for zone, _ in pairs(RvRZones[1]) do
@@ -333,16 +353,7 @@ function RvRContribution.OnZoneUpdate(zoneId)
         if not name or not RvRContribution.Zones[name] then
             return
         end
-        local message = name;
-        for key,value in pairs(RvRContribution.Zones[name]) do
-            message = message.." "..key..": "..tostring(value)
-        end
-        TextLogAddEntry("Chat", SystemData.ChatLogFilters.RVR, towstring(message))
-        RvRContribution.Zones[name] = nil
-        local window = "RvRContribution"..name:gsub(" ","_")
-        if DoesWindowExist(window) then
-            DestroyWindow(window)
-        end
+        resetZone(name)
     end
 end
 function RvRContribution.OnUpdatePQ(elapsed)
@@ -427,6 +438,12 @@ function RvRContribution.OnDeath()
     add('deaths')
 end
 function RvRContribution.OnCombatAction( hitTargetObjectNumber, hitAmount, textType )
+    if not isInAllowedZone() then
+        return
+    end
+    if not GameData.Player.isInRvRLake then
+        return
+    end
     if GameData.Player.worldObjNum ~= hitTargetObjectNumber then
         if textType == GameData.CombatEvent.HIT or textType == GameData.CombatEvent.ABILITY_HIT or textType == GameData.CombatEvent.CRITICAL or textType == GameData.CombatEvent.ABILITY_CRITICAL then
             if hitAmount < 0 then
