@@ -5,9 +5,12 @@ local timeNotify = 0
 local timePQ = 0
 local lastBOStatus = ""
 local previousBOStatus = ""
+local keepBonus = 1
+local keepName = L""
+local flagBonus = 1
 local aao = 1
 local aaoBuffId = 0
-local points = {heal=2.5,damage=2,deaths=0,rezz=10,kills=10,assist=5,boxes=50,boxAssists=10,capture=5}
+local points = {keep=50,heal=0.025,damage=0.02,deaths=0,rezz=10,kills=10,assist=5,boxes=50,boxAssists=10,capture=5}
 local RvRZones = {
     [1] = {
         [6]="T1 Dwarf",
@@ -153,7 +156,7 @@ local function add(key, amount)
     local value = RvRContribution.Zones[zone].value
     for i=1,amount do
         RvRContribution.Zones[zone][key] = RvRContribution.Zones[zone][key] + 1
-        RvRContribution.Zones[zone].value = RvRContribution.Zones[zone].value + points[key] * aao / RvRContribution.Zones[zone][key] 
+        RvRContribution.Zones[zone].value = RvRContribution.Zones[zone].value + points[key] * aao * keepBonus * flagBonus / math.pow(1.1, RvRContribution.Zones[zone][key] - 1) 
     end
     if math.floor(value) ~= math.floor(RvRContribution.Zones[zone].value) and RvRContribution.Config.alert then
         notify(GameData.Player.zone)
@@ -328,6 +331,8 @@ function RvRContribution.OnChat(updateType, filter)--SystemData.ChatLogFilters
             add('assist')
         elseif msg:match(L"^You gain [0-9]+ renown from killing") then
             add('kills')
+        elseif msg:match(L"^You gain [0-9]+ renown from capturing "..keepName.."$") then
+            add('keep')
         end
     end
 end
@@ -369,9 +374,13 @@ function RvRContribution.OnUpdatePQ(elapsed)
     if not GameData.Player.isInRvRLake then
         return
     end
+    keepBonus = 1
+    flagBonus = 1
+    keepName = L""
     local quests = GetActiveObjectivesData()
     for key, quest in pairs(quests) do
         if quest.isBattlefieldObjective and not quest.isKeep then
+            flagBonus = 1.1
             for k,q in pairs(quest.Quest) do
                 if lastBOStatus ~= quest.name..q.name then
                     previousBOStatus = quest.name..q.name
@@ -379,7 +388,10 @@ function RvRContribution.OnUpdatePQ(elapsed)
                     previousBOStatus = ""
                 end
                 lastBOStatus = quest.name..q.name
-            end 
+            end
+        elseif quest.isKeep then
+            keepBonus = 1.25
+            keepName = GameData.Player.area.name:match(L"(.*)\^(.*)")
         end
     end
 end
