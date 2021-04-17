@@ -11,6 +11,52 @@ local flagBonus = 1
 local aao = 1
 local aaoBuffId = 0
 local points = {keep=50,heal=0.025,damage=0.02,deaths=0,rezz=10,kills=10,assist=5,boxes=50,boxAssists=10,capture=5}
+local Keeps = {
+    [L"Dok Karaz"]={"T2 Dwarf", "T2 Greenskin"},
+    [L"Fangbreaka Swamp"]={"T2 Dwarf", "T2 Greenskin"},
+
+    [L"Gnol Baraz"]={"T3 Dwarf", "T3 Greenskin"},
+    [L"Thickmuck Pit"]={"T3 Dwarf", "T3 Greenskin"},
+
+    [L"Karaz Drengi"]={"Kadrin Valley", "Kadrin Valleyn"},
+    [L"Kazad Dammaz"]={"Kadrin Valley", "Kadrin Valley"},
+
+    [L"Bloodfist Rock"]={"Thunder Mountain", "Thunder Mountain"},
+    [L"Karak Karag"]={"Thunder Mountain", "Thunder Mountain"},
+
+    [L"Ironskin Skar"]={"Black Crag", "Black Crag"},
+    [L"Badmoon Hole"]={"Black Crag", "Black Crag"},
+
+    [L"Stonetroll Keep"]={"T2 Empire", "T2 Chaos"},
+    [L"Manded's Hold"]={"T2 Empire", "T2 Chaos"},
+
+    [L"Stonetroll Castle"]={"T3 Empire", "T3 Chaos"},
+    [L"Passwatch Castle"]={"T3 Empire", "T3 Chaos"},
+
+    [L"Morr's Response"]={"Reikland", "Reikland"},
+    [L"Wilhelm's Fist"]={"Reikland", "Reikland"},
+
+    [L"Southern Garrison"]={"Praag", "Praag"},
+    [L"Garrison of Skulls"]={"Praag", "Praag"},
+
+    [L"Charon's Keep"]={"Chaos Wastes", "Chaos Wastes"},
+    [L"Zimmeron's Hold"]={"Chaos Wastes", "Chaos Wastes"},
+
+    [L"Spite's Reach"]={"T2 Elves", "T2 Elves"},
+    [L"Cascades of Thunder"]={"T2 Elves", "T2 Elves"},
+
+    [L"Ghrond's Sacristy"]={"T3 Elves", "T3 Elves"},
+    [L"Well of Qhaysh"]={"T3 Elves", "T3 Elves"},
+
+    [L"Pillars of Remembrance"]={"Eateine", "Eateine"},
+    [L"Arbor of Light"]={"Eateine", "Eateine"},
+
+    [L"Drakebreaker's Scourge"]={"Dragonwake", "Dragonwake"},
+    [L"Covenant of Flame"]={"Dragonwake", "Dragonwake"},
+
+    [L"Hatred's Way"]={"Caledor", "Caledor"},
+    [L"Wrath's Resolve"]={"Caledor", "Caledor"},
+}
 local RvRZones = {
     [1] = {
         [6]="T1 Dwarf",
@@ -138,11 +184,11 @@ local function notify(zone)
     end
     notifications[name] = {towstring(name..": "..tostring(math.floor(values.value)))}
 end
-local function add(key, amount)
+local function add(key, amount, zone)
     if amount == nil then
         amount = 1
     end
-    local zone = RvRZones[GameData.Player.realm][GameData.Player.zone]
+    local zone = zone or RvRZones[GameData.Player.realm][GameData.Player.zone]
     if RvRContribution.Zones[zone] == nil then--to fix a weird bug where onload doesn't work
         RvRContribution.Zones[zone] = {}
     end
@@ -332,8 +378,14 @@ function RvRContribution.OnChat(updateType, filter)--SystemData.ChatLogFilters
             add('assist')
         elseif msg:match(L"^You gain [0-9]+ renown from killing") then
             add('kills')
-        elseif msg:match(L"^You gain [0-9]+ renown from capturing "..keepName.."$") then
-            add('keep')
+        elseif msg:match(L"^You gain [0-9]+ renown from capturing (.+)$") then
+            local keep = msg:match(L"^You gain [0-9]+ renown from capturing (.+)$")
+            for keepName,pairing in pairs(Keeps) do
+                if keep == keepName then
+                    add('keep', 1, pairing[GameData.Player.realm])
+                    break
+                end
+            end
         end
     end
 end
@@ -392,7 +444,6 @@ function RvRContribution.OnUpdatePQ(elapsed)
             end
         elseif quest.isKeep then
             keepBonus = 1.25
-            keepName = GameData.Player.area.name:match(L"(.*)\^(.*)")
         end
     end
 end
