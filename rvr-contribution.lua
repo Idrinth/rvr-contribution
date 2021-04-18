@@ -10,7 +10,9 @@ local keepName = L""
 local flagBonus = 1
 local aao = 1
 local aaoBuffId = 0
-local points = {keep=50,heal=0.025,damage=0.02,deaths=0,rezz=10,kills=10,assist=5,boxes=50,boxAssists=10,capture=5}
+local triesRezz = false
+local points = {keep=100,heal=0.025,damage=0.02,deaths=0,rezz=10,kills=10,assist=5,boxes=70,boxAssists=35,capture=5}
+local scale = {keep=1,heal=1000,damage=1000,deaths=1,rezz=1,kills=1,assist=1,boxes=1,boxAssists=1,capture=1}
 local Keeps = {
     [L"Dok Karaz"]={"T2 Dwarf", "T2 Greenskin"},
     [L"Fangbreaka Swamp"]={"T2 Dwarf", "T2 Greenskin"},
@@ -18,7 +20,7 @@ local Keeps = {
     [L"Gnol Baraz"]={"T3 Dwarf", "T3 Greenskin"},
     [L"Thickmuck Pit"]={"T3 Dwarf", "T3 Greenskin"},
 
-    [L"Karaz Drengi"]={"Kadrin Valley", "Kadrin Valleyn"},
+    [L"Karaz Drengi"]={"Kadrin Valley", "Kadrin Valley"},
     [L"Kazad Dammaz"]={"Kadrin Valley", "Kadrin Valley"},
 
     [L"Bloodfist Rock"]={"Thunder Mountain", "Thunder Mountain"},
@@ -202,7 +204,7 @@ local function add(key, amount, zone)
     local value = RvRContribution.Zones[zone].value
     for i=1,amount do
         RvRContribution.Zones[zone][key] = RvRContribution.Zones[zone][key] + 1
-        RvRContribution.Zones[zone].value = RvRContribution.Zones[zone].value + points[key] * aao * keepBonus * flagBonus / math.pow(1.1, RvRContribution.Zones[zone][key] - 1) 
+        RvRContribution.Zones[zone].value = RvRContribution.Zones[zone].value + points[key] * aao * keepBonus * flagBonus / math.pow(1.175, (RvRContribution.Zones[zone][key] - 1)/scale[key]) 
     end
     if math.floor(value) ~= math.floor(RvRContribution.Zones[zone].value) and RvRContribution.Config.alert then
         notify(GameData.Player.zone)
@@ -284,6 +286,7 @@ function RvRContribution.OnInitialize()
     RegisterEventHandler(SystemData.Events.PLAYER_EFFECTS_UPDATED, "RvRContribution.OnBuff")
     --Ressurection
     RegisterEventHandler(SystemData.Events.PLAYER_BEGIN_CAST, "RvRContribution.OnCast")
+    RegisterEventHandler(SystemData.Events.PLAYER_END_CAST, "RvRContribution.OnEndCast")
     --Battlefield-Objective capture
     RegisterEventHandler(SystemData.Events.PUBLIC_QUEST_UPDATED, "RvRContribution.OnPublicQuest")
     --Deaths
@@ -318,6 +321,14 @@ function RvRContribution.OnPairingUpdate( pairingId )
         RvRContribution.OnZoneUpdate(zone)
     end
 end
+function RvRContribution.OnEndCast(interupted)
+    if triesRezz then
+        if not interupted then
+            add('rezz')
+        end
+        triesRezz = false
+    end
+end
 function RvRContribution.OnCast(abilityId)
     if not isInAllowedZone() then
         return
@@ -327,7 +338,7 @@ function RvRContribution.OnCast(abilityId)
     end
     for _, id in pairs(resses) do
         if abilityId == id then
-            add('rezz')
+            triesRezz = true
             return
         end
     end
@@ -378,8 +389,9 @@ function RvRContribution.OnChat(updateType, filter)--SystemData.ChatLogFilters
             add('assist')
         elseif msg:match(L"^You gain [0-9]+ renown from killing") then
             add('kills')
-        elseif msg:match(L"^You gain [0-9]+ renown from capturing (.+)$") then
-            local keep = msg:match(L"^You gain [0-9]+ renown from capturing (.+)$")
+        elseif msg:match(L"^You gain [0-9]+ renown from capturing (.+)\.$") then
+            local keep = msg:match(L"^You gain [0-9]+ renown from capturing (.+)\.$")
+            d(keep)
             for keepName,pairing in pairs(Keeps) do
                 if keep == keepName then
                     add('keep', 1, pairing[GameData.Player.realm])
