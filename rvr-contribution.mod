@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ModuleFile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<UiMod name="RvRContribution" version="1.0.0RC7" date="2021-04-18" >
+	<UiMod name="RvRContribution" version="1.0.0RC8" date="2021-04-18" >
     <VersionSettings gameVersion="1.4.8" windowsVersion="1.40" savedVariablesVersion="1.50" />
 
 		<Author name="Idrinth"/>

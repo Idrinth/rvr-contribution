@@ -11,8 +11,8 @@ local flagBonus = 1
 local aao = 1
 local aaoBuffId = 0
 local triesRezz = false
-local points = {keep=100,heal=0.025,damage=0.02,deaths=0,rezz=10,kills=10,assist=5,boxes=70,boxAssists=35,capture=5}
-local scale = {keep=1,heal=1000,damage=1000,deaths=1,rezz=1,kills=1,assist=1,boxes=1,boxAssists=1,capture=1}
+local points = {keep=100,heal=0.0006,damage=0.0005,deaths=0,rezz=10,kills=10,assist=5,boxes=70,boxAssists=35,capture=5}
+local scale = {keep=1,heal=10000,damage=1000,deaths=1,rezz=1,kills=1,assist=1,boxes=1,boxAssists=1,capture=1}
 local Keeps = {
     [L"Dok Karaz"]={"T2 Dwarf", "T2 Greenskin"},
     [L"Fangbreaka Swamp"]={"T2 Dwarf", "T2 Greenskin"},
@@ -218,6 +218,7 @@ local function slash(input)
         end
     elseif input == "alert" then
         RvRContribution.Config.alert = not RvRContribution.Config.alert
+        TextLogAddEntry("Chat", SystemData.ChatLogFilters.SAY, L"Alert enabled? "..towstring(RvRContribution.Config.alert))
     else
         TextLogAddEntry("Chat", SystemData.ChatLogFilters.SAY, L"Avaible commands: alert, dump")
     end
@@ -359,13 +360,13 @@ function RvRContribution.OnChat(updateType, filter)--SystemData.ChatLogFilters
     if updateType ~= SystemData.TextLogUpdate.ADDED then
         return
     end
-    if not isInAllowedZone() then
-        return
-    end
-    if not GameData.Player.isInRvRLake then
-        return
-    end
     if filter == SystemData.ChatLogFilters.RVR then
+        if not isInAllowedZone() then
+            return
+        end
+        if not GameData.Player.isInRvRLake then
+            return
+        end
         local num = TextLogGetNumEntries("Chat") - 1
         local _, _, msg = TextLogGetEntry("Chat", num);
         if msg:match(L" successfully returned the supplies!$") then
@@ -386,8 +387,20 @@ function RvRContribution.OnChat(updateType, filter)--SystemData.ChatLogFilters
         local num = TextLogGetNumEntries("Combat") - 1
         local _, _, msg = TextLogGetEntry("Combat", num);
         if msg:match(L"^You gain [0-9]+ renown from assisting") then
+            if not isInAllowedZone() then
+                return
+            end
+            if not GameData.Player.isInRvRLake then
+                return
+            end
             add('assist')
         elseif msg:match(L"^You gain [0-9]+ renown from killing") then
+            if not isInAllowedZone() then
+                return
+            end
+            if not GameData.Player.isInRvRLake then
+                return
+            end
             add('kills')
         elseif msg:match(L"^You gain [0-9]+ renown from capturing (.+)\.$") then
             local keep = msg:match(L"^You gain [0-9]+ renown from capturing (.+)\.$")
