@@ -11,8 +11,8 @@ local flagBonus = 1
 local aao = 1
 local aaoBuffId = 0
 local triesRezz = false
-local points = {keep=100,heal=0.0006,damage=0.0005,deaths=0,rezz=10,kills=10,assist=5,boxes=70,boxAssists=35,capture=5}
-local scale = {keep=1,heal=10000,damage=1000,deaths=1,rezz=1,kills=1,assist=1,boxes=1,boxAssists=1,capture=1}
+local points = {keep=100,heal=0.0004,damage=0.0004,deaths=1,rezz=10,kills=10,assist=5,boxes=70,boxAssists=35,capture=5}
+local scale = {keep=1,heal=100000,damage=100000,deaths=1,rezz=1,kills=1,assist=1,boxes=1,boxAssists=1,capture=1}
 local Keeps = {
     [L"Dok Karaz"]={"T2 Dwarf", "T2 Greenskin"},
     [L"Fangbreaka Swamp"]={"T2 Dwarf", "T2 Greenskin"},
@@ -226,12 +226,11 @@ end
 function resetZone(zone)
     local message = zone;
     for key,value in pairs(RvRContribution.Zones[zone]) do
-        if key ~= "used" then
+        if key ~= "used" and value ~= 0 then
             message = message.." "..key..": "..tostring(math.floor(value))
         end
     end
     TextLogAddEntry("Chat", SystemData.ChatLogFilters.RVR, towstring(message))
-    TextLogAddEntry("RvRContribution", 90000, towstring(message))
     RvRContribution.Zones[zone] = nil
     local window = "RvRContribution"..zone:gsub(" ","_")
     if DoesWindowExist(window) then
@@ -303,7 +302,7 @@ function RvRContribution.OnInitialize()
     RegisterEventHandler( SystemData.Events.WORLD_OBJ_COMBAT_EVENT, "RvRContribution.OnCombatAction")
     -- commands
     if LibSlash and LibSlash.RegisterSlashCmd then
-        LibSlash.RegisterSlashCmd( "rvr-contribution", slash )
+        LibSlash.RegisterSlashCmd( "rvrcontribution", slash )
         LibSlash.RegisterSlashCmd( "rvrc", slash )
     end
     -- ui
@@ -312,10 +311,6 @@ function RvRContribution.OnInitialize()
     LabelSetTextColor("RvRContribution",255,255,255)
     LayoutEditor.RegisterWindow("RvRContribution", L"RvRContribution",L"", false, false, true, nil )
     ui()
-    --log
-    TextLogCreate("RvRContribution", 9000)
-    TextLogSetIncrementalSaving( "RvRContribution", true, L"logs/rvrcontribution.log")
-    TextLogSetEnabled("RvRContribution", true )
 end
 function RvRContribution.OnPairingUpdate( pairingId )
     for zone, _ in pairs(RvRZones[1]) do
@@ -376,7 +371,7 @@ function RvRContribution.OnChat(updateType, filter)--SystemData.ChatLogFilters
                 add('boxes')
             else
                 for _,player in pairs(GetGroupData()) do
-                    if player and player.name and player.name == name then
+                    if player and player.name and player.name == name and not player.isDistant then
                         add('boxAssists')
                         break
                     end

@@ -5,7 +5,7 @@
                 <AbsPoint x="200" y="30" />
             </Size>
 	        <Anchors>
-	            <Anchor point="topleft" relativePoint="topleft" relativeTo="Root">
+	            <Anchor point="left" relativePoint="left" relativeTo="Root">
 	                <AbsPoint x="0" y="0" />
 	            </Anchor>
 	        </Anchors>
