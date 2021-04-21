@@ -72,7 +72,7 @@ local Keeps = {
     [L"Stonetroll Keep"]={"T2 Empire", "T2 Chaos"},
     [L"Manded's Hold"]={"T2 Empire", "T2 Chaos"},
 
-    [L"Stonetroll Castle"]={"T3 Empire", "T3 Chaos"},
+    [L"Stoneclaw Castle"]={"T3 Empire", "T3 Chaos"},
     [L"Passwatch Castle"]={"T3 Empire", "T3 Chaos"},
 
     [L"Morr's Response"]={"Reikland", "Reikland"},
@@ -88,7 +88,7 @@ local Keeps = {
     [L"Cascades of Thunder"]={"T2 Elves", "T2 Elves"},
 
     [L"Ghrond's Sacristy"]={"T3 Elves", "T3 Elves"},
-    [L"Well of Qhaysh"]={"T3 Elves", "T3 Elves"},
+    [L"The Well of Qhaysh"]={"T3 Elves", "T3 Elves"},
 
     [L"Pillars of Remembrance"]={"Eateine", "Eateine"},
     [L"Arbor of Light"]={"Eateine", "Eateine"},
