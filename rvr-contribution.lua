@@ -13,7 +13,7 @@ local aaoBuffId = 0
 local triesRezz = false
 local win = {
     defence=10,
-    keepDefense=50,
+    keepDefence=50,
     keep=100,
     heal=0.0004,
     damage=0.0004,
@@ -27,7 +27,7 @@ local win = {
 }
 local loss = {
     defence=10,
-    keepDefense=50,
+    keepDefence=50,
     keep=100,
     heal=0.0004,
     damage=0.0004,
@@ -41,7 +41,7 @@ local loss = {
 }
 local scale = {
     defence=1,
-    keepDefense=1,
+    keepDefence=1,
     keep=1,
     heal=100000,
     damage=100000,
@@ -472,16 +472,17 @@ function RvRContribution.OnChat(updateType, filter)--SystemData.ChatLogFilters
             end
         elseif msg:match(L"^You gain [0-9]+ renown from defending (.+)\.$") then
             local keep = msg:match(L"^You gain [0-9]+ renown from defending (.+)\.$")
-            local found = false;
+            local found = false
+            d(keep)
             for keepName,pairing in pairs(Keeps) do
                 if keep == keepName then
-                    add('keepDefense', 1, pairing[GameData.Player.realm])
+                    add('keepDefence', 1, pairing[GameData.Player.realm])
                     found = true
                     break
                 end
             end
             if not found then
-                add('defense')
+                add('defence')
             end
         end
     end
