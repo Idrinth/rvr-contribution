@@ -226,7 +226,7 @@ local function notify(zone)
     if not values then
         return
     end
-    notifications[name] = {towstring(name..": "..tostring(math.floor(values.value)))}
+    notifications[name] = {towstring(name..": "..tostring(math.floor(values.win)).."|"..tostring(math.floor(values.loss)))}
 end
 local function add(key, amount, zone)
     if amount == nil then
