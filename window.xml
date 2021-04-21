@@ -10,12 +10,12 @@
 	            </Anchor>
 	        </Anchors>
         </Label>
-    	<Window name="RvRContributionTemplate" handleinput="true">
+        <Window name="RvRContributionTemplate" handleinput="true">
             <Size>
-                <AbsPoint x="200" y="30" />
+                <AbsPoint x="275" y="30" />
             </Size>
-    		<Windows>
-    			<Label handleinput="false" name="$parentPairing" font="font_default_text_small" textalign="left">
+            <Windows>
+                <Label handleinput="false" name="$parentPairing" font="font_default_text_small" textalign="left">
                     <Size>
                         <AbsPoint x="125" y="30" />
                     </Size>
@@ -25,7 +25,17 @@
                         </Anchor>
                     </Anchors>
                 </Label>
-    			<Label handleinput="false" name="$parentPoints" font="font_default_text_small" textalign="right">
+                <Label handleinput="false" name="$parentWin" font="font_default_text_small" textalign="right">
+                    <Size>
+                        <AbsPoint x="75" y="30" />
+                    </Size>
+                    <Anchors>
+                        <Anchor point="topright" relativePoint="topright" relativeTo="$parent">
+                            <AbsPoint x="-75" y="6" />
+                        </Anchor>
+                    </Anchors>
+                </Label>
+                <Label handleinput="false" name="$parentLoss" font="font_default_text_small" textalign="right">
                     <Size>
                         <AbsPoint x="75" y="30" />
                     </Size>
@@ -35,11 +45,48 @@
                         </Anchor>
                     </Anchors>
                 </Label>
-    		</Windows>
-    		<EventHandlers>
-    			<EventHandler event="OnMouseOver" function="RvRContribution.OnHover"/>
-    			<EventHandler event="OnRButtonUp" function="RvRContribution.OnRButtonUp"/>
-    		</EventHandlers>
+            </Windows>
+            <EventHandlers>
+                <EventHandler event="OnMouseOver" function="RvRContribution.OnHover"/>
+                <EventHandler event="OnRButtonUp" function="RvRContribution.OnRButtonUp"/>
+            </EventHandlers>
+        </Window>
+        <Window name="RvRContributionHeader" handleinput="false">
+            <Size>
+                <AbsPoint x="275" y="30" />
+            </Size>
+            <Windows>
+                <Label handleinput="false" name="$parentPairing" font="font_default_text_small" textalign="left">
+                    <Size>
+                        <AbsPoint x="125" y="30" />
+                    </Size>
+                    <Anchors>
+                        <Anchor point="topleft" relativePoint="topleft" relativeTo="$parent">
+                            <AbsPoint x="0" y="6" />
+                        </Anchor>
+                    </Anchors>
+                </Label>
+                <Label handleinput="false" name="$parentWin" font="font_default_text_small" textalign="right">
+                    <Size>
+                        <AbsPoint x="75" y="30" />
+                    </Size>
+                    <Anchors>
+                        <Anchor point="topright" relativePoint="topright" relativeTo="$parent">
+                            <AbsPoint x="-75" y="6" />
+                        </Anchor>
+                    </Anchors>
+                </Label>
+                <Label handleinput="false" name="$parentLoss" font="font_default_text_small" textalign="right">
+                    <Size>
+                        <AbsPoint x="75" y="30" />
+                    </Size>
+                    <Anchors>
+                        <Anchor point="topright" relativePoint="topright" relativeTo="$parent">
+                            <AbsPoint x="0" y="6" />
+                        </Anchor>
+                    </Anchors>
+                </Label>
+            </Windows>
     	</Window>
     </Windows>
 </Interface>

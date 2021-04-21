@@ -11,8 +11,48 @@ local flagBonus = 1
 local aao = 1
 local aaoBuffId = 0
 local triesRezz = false
-local points = {keep=100,heal=0.0004,damage=0.0004,deaths=1,rezz=10,kills=10,assist=5,boxes=70,boxAssists=35,capture=5}
-local scale = {keep=1,heal=100000,damage=100000,deaths=1,rezz=1,kills=1,assist=1,boxes=1,boxAssists=1,capture=1}
+local win = {
+    defence=10,
+    keepDefense=50,
+    keep=100,
+    heal=0.0004,
+    damage=0.0004,
+    deaths=1,
+    rezz=10,
+    kills=10,
+    assist=5,
+    boxes=70,
+    boxAssists=35,
+    capture=5
+}
+local loss = {
+    defence=10,
+    keepDefense=50,
+    keep=100,
+    heal=0.0004,
+    damage=0.0004,
+    deaths=1,
+    rezz=10,
+    kills=10,
+    assist=5,
+    boxes=0,
+    boxAssists=0,
+    capture=5
+}
+local scale = {
+    defence=1,
+    keepDefense=1,
+    keep=1,
+    heal=100000,
+    damage=100000,
+    deaths=1,
+    rezz=1,
+    kills=1,
+    assist=1,
+    boxes=1,
+    boxAssists=1,
+    capture=1
+}
 local Keeps = {
     [L"Dok Karaz"]={"T2 Dwarf", "T2 Greenskin"},
     [L"Fangbreaka Swamp"]={"T2 Dwarf", "T2 Greenskin"},
@@ -159,20 +199,22 @@ local function isInAllowedZone()
     return false
 end
 local function ui()
-    local counter=0
+    local counter=1
     for pairing, data in pairs(RvRContribution.Zones) do
         local window = "RvRContribution"..pairing:gsub(" ","_")
         if data.used then
             counter = counter + 1
             if not DoesWindowExist(window) then
                 CreateWindowFromTemplate(window, "RvRContributionTemplate", "Root")
+                LabelSetTextColor(window.."Pairing",255,255,255)
+                LabelSetTextColor(window.."Win",255,255,255)
+                LabelSetTextColor(window.."Loss",255,255,255)
             end
             WindowClearAnchors(window)
             WindowAddAnchor(window, "topleft", "RvRContribution", "topleft", 0, counter*30)
             LabelSetText(window.."Pairing", towstring(pairing))
-            LabelSetText(window.."Points", towstring(math.floor(data.value)))
-            LabelSetTextColor(window.."Pairing",255,255,255)
-            LabelSetTextColor(window.."Points",255,255,255)
+            LabelSetText(window.."Win", towstring(math.floor(data.win)))
+            LabelSetText(window.."Loss", towstring(math.floor(data.loss or 0)))
         elseif DoesWindowExist(window) then
             DestroyWindow(window)
         end
@@ -194,19 +236,24 @@ local function add(key, amount, zone)
     if RvRContribution.Zones[zone] == nil then--to fix a weird bug where onload doesn't work
         RvRContribution.Zones[zone] = {}
     end
-    if RvRContribution.Zones[zone].value == nil then
-        RvRContribution.Zones[zone].value = 0
+    if RvRContribution.Zones[zone].win == nil then
+        RvRContribution.Zones[zone].win = 0
+    end
+    if RvRContribution.Zones[zone].loss == nil then
+        RvRContribution.Zones[zone].loss = 0
     end
     if RvRContribution.Zones[zone][key] == nil then
         RvRContribution.Zones[zone][key] = 0
     end
     RvRContribution.Zones[zone].used = true
-    local value = RvRContribution.Zones[zone].value
+    local winValue = RvRContribution.Zones[zone].win
+    local lossValue = RvRContribution.Zones[zone].loss
     for i=1,amount do
         RvRContribution.Zones[zone][key] = RvRContribution.Zones[zone][key] + 1
-        RvRContribution.Zones[zone].value = RvRContribution.Zones[zone].value + points[key] * aao * keepBonus * flagBonus / math.pow(1.175, (RvRContribution.Zones[zone][key] - 1)/scale[key]) 
+        RvRContribution.Zones[zone].win = RvRContribution.Zones[zone].win + win[key] * aao * keepBonus * flagBonus / math.pow(1.175, (RvRContribution.Zones[zone][key] - 1)/scale[key])
+        RvRContribution.Zones[zone].loss = RvRContribution.Zones[zone].loss + loss[key] * aao * keepBonus * flagBonus / math.pow(1.175, (RvRContribution.Zones[zone][key] - 1)/scale[key]) 
     end
-    if math.floor(value) ~= math.floor(RvRContribution.Zones[zone].value) and RvRContribution.Config.alert then
+    if (math.floor(winValue) ~= math.floor(RvRContribution.Zones[zone].win) or math.floor(lossValue) ~= math.floor(RvRContribution.Zones[zone].loss)) and RvRContribution.Config.alert then
         notify(GameData.Player.zone)
     end
     ui()
@@ -236,7 +283,7 @@ function resetZone(zone)
     if DoesWindowExist(window) then
         DestroyWindow(window)
     end
-    RvRContribution.Zones[zone] = {heal=0,damage=0,rezz=0,kills=0,assist=0,boxes=0,boxAssists=0,capture=0,used=false,value=0}
+    RvRContribution.Zones[zone] = {heal=0,damage=0,rezz=0,kills=0,assist=0,boxes=0,boxAssists=0,capture=0,used=false,win=0,loss=0}
     ui()
 end
 function RvRContribution.OnHover()
@@ -255,7 +302,9 @@ function RvRContribution.OnHover()
     Tooltips.SetTooltipText( 8, 1, towstring(values.boxes or 0)..L" Boxes")
     Tooltips.SetTooltipText( 9, 1, towstring(values.boxAssists or 0)..L" Box-Assists")
     Tooltips.SetTooltipText( 10, 1, towstring(values.capture or 0)..L" Captures")
-    Tooltips.SetTooltipText( 11, 1, towstring(values.keep or 0)..L" Keeps")
+    Tooltips.SetTooltipText( 11, 1, towstring(values.defence or 0)..L" Defends")
+    Tooltips.SetTooltipText( 12, 1, towstring(values.keep or 0)..L" Keeps")
+    Tooltips.SetTooltipText( 13, 1, towstring(values.keepDefence or 0)..L" Keep Defends")
     Tooltips.Finalize()
     local rootWidth,rootHeight = WindowGetDimensions("Root")
     local mglX,mglY = WindowGetScreenPosition(mouseWin)
@@ -280,6 +329,13 @@ function RvRContribution.OnInitialize()
     RvRContribution.Zones = RvRContribution.Zones or {}
     RvRContribution.Config = RvRContribution.Config or {alert=true}
     RvRContribution.OnZone()
+    --upgrade old stuff
+    for key, values in pairs(RvRContribution.Zones) do
+        if values.value then
+            values.win = values.value
+            values.value = nil
+        end
+    end
     --Zoning
     RegisterEventHandler(SystemData.Events.LOADING_END, "RvRContribution.OnZone")
     --AAO
@@ -310,6 +366,15 @@ function RvRContribution.OnInitialize()
     LabelSetText("RvRContribution", L"RvRContribution")
     LabelSetTextColor("RvRContribution",255,255,255)
     LayoutEditor.RegisterWindow("RvRContribution", L"RvRContribution",L"", false, false, true, nil )
+    local header = 'RvRContributionHeader';
+    CreateWindow(header, true)
+    LabelSetTextColor(header.."Pairing",255,255,255)
+    LabelSetTextColor(header.."Win",255,255,255)
+    LabelSetTextColor(header.."Loss",255,255,255)
+    WindowAddAnchor(header, "topleft", "RvRContribution", "topleft", 0, 30)
+    LabelSetText(header.."Pairing", L"Zone")
+    LabelSetText(header.."Win", L"Win")
+    LabelSetText(header.."Loss", L"Loss")
     ui()
 end
 function RvRContribution.OnPairingUpdate( pairingId )
@@ -344,7 +409,7 @@ function RvRContribution.OnZone()
     aaoBuffId = 0
     if isInAllowedZone() then
         if not RvRContribution.Zones[RvRZones[GameData.Player.realm][GameData.Player.zone]] then
-            RvRContribution.Zones[RvRZones[GameData.Player.realm][GameData.Player.zone]] = {rezz=0,kills=0,assist=0,boxes=0,boxAssists=0,capture=0,used=false,value=0}
+            RvRContribution.Zones[RvRZones[GameData.Player.realm][GameData.Player.zone]] = {rezz=0,kills=0,assist=0,boxes=0,boxAssists=0,capture=0,used=false,win=0,loss=0}
         end
     end
     for zone, _ in pairs(RvRZones[1]) do
@@ -399,12 +464,24 @@ function RvRContribution.OnChat(updateType, filter)--SystemData.ChatLogFilters
             add('kills')
         elseif msg:match(L"^You gain [0-9]+ renown from capturing (.+)\.$") then
             local keep = msg:match(L"^You gain [0-9]+ renown from capturing (.+)\.$")
-            d(keep)
             for keepName,pairing in pairs(Keeps) do
                 if keep == keepName then
                     add('keep', 1, pairing[GameData.Player.realm])
                     break
                 end
+            end
+        elseif msg:match(L"^You gain [0-9]+ renown from defending (.+)\.$") then
+            local keep = msg:match(L"^You gain [0-9]+ renown from defending (.+)\.$")
+            local found = false;
+            for keepName,pairing in pairs(Keeps) do
+                if keep == keepName then
+                    add('keepDefense', 1, pairing[GameData.Player.realm])
+                    found = true
+                    break
+                end
+            end
+            if not found then
+                add('defense')
             end
         end
     end
@@ -449,7 +526,6 @@ function RvRContribution.OnUpdatePQ(elapsed)
     end
     keepBonus = 1
     flagBonus = 1
-    keepName = L""
     local quests = GetActiveObjectivesData()
     for key, quest in pairs(quests) do
         if quest.isBattlefieldObjective and not quest.isKeep then
