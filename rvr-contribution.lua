@@ -29,8 +29,8 @@ local loss = {
     defence=10,
     keepDefence=50,
     keep=100,
-    heal=0.0004,
-    damage=0.0004,
+    heal=0.0002,
+    damage=0.0002,
     deaths=1,
     rezz=10,
     kills=10,
@@ -43,8 +43,8 @@ local scale = {
     defence=1,
     keepDefence=1,
     keep=1,
-    heal=100000,
-    damage=100000,
+    heal=1000000,
+    damage=1000000,
     deaths=1,
     rezz=1,
     kills=1,
@@ -52,6 +52,20 @@ local scale = {
     boxes=1,
     boxAssists=1,
     capture=1
+}
+local boBonus = {
+    defence=false,
+    keepDefence=false,
+    keep=false,
+    heal=true,
+    damage=true,
+    deaths=true,
+    rezz=true,
+    kills=true,
+    assist=true,
+    boxes=true,
+    boxAssists=true,
+    capture=false
 }
 local Keeps = {
     [L"Dok Karaz"]={"T2 Dwarf", "T2 Greenskin"},
@@ -248,10 +262,14 @@ local function add(key, amount, zone)
     RvRContribution.Zones[zone].used = true
     local winValue = RvRContribution.Zones[zone].win
     local lossValue = RvRContribution.Zones[zone].loss
+    local factor = 1
+    if boBonus[key] then
+        factor = aao * keepBonus * flagBonus
+    end
     for i=1,amount do
         RvRContribution.Zones[zone][key] = RvRContribution.Zones[zone][key] + 1
-        RvRContribution.Zones[zone].win = RvRContribution.Zones[zone].win + win[key] * aao * keepBonus * flagBonus / math.pow(1.175, (RvRContribution.Zones[zone][key] - 1)/scale[key])
-        RvRContribution.Zones[zone].loss = RvRContribution.Zones[zone].loss + loss[key] * aao * keepBonus * flagBonus / math.pow(1.175, (RvRContribution.Zones[zone][key] - 1)/scale[key]) 
+        RvRContribution.Zones[zone].win = RvRContribution.Zones[zone].win + win[key] * factor / math.pow(1.175, (RvRContribution.Zones[zone][key] - 1)/scale[key])
+        RvRContribution.Zones[zone].loss = RvRContribution.Zones[zone].loss + loss[key] * factor / math.pow(1.175, (RvRContribution.Zones[zone][key] - 1)/scale[key]) 
     end
     if (math.floor(winValue) ~= math.floor(RvRContribution.Zones[zone].win) or math.floor(lossValue) ~= math.floor(RvRContribution.Zones[zone].loss)) and RvRContribution.Config.alert then
         notify(GameData.Player.zone)
