@@ -43,8 +43,8 @@ local scale = {
     defence=1,
     keepDefence=1,
     keep=1,
-    heal=1000000,
-    damage=1000000,
+    heal=500000,
+    damage=500000,
     deaths=1,
     rezz=1,
     kills=1,
@@ -195,6 +195,46 @@ local RvRZones = {
         [203]="Caledor",
     },
 }
+local Zones = {
+    L"Erkrund",
+    L"Mount Bloodhorn",
+
+    L"Barak Varr",
+    L"Marshes of Madness",
+
+    L"Black Fire Pass",
+    L"The Badlands",
+
+    L"Kadrin Valley",
+    L"Thunder Mountain",
+    L"Black Crag",
+
+    L"Nordland",
+    L"Norsca",
+
+    L"Troll Country",
+    L"Ostland",
+
+    L"High Pass",
+    L"Talabecland",
+
+    L"Reikland",
+    L"Praag",
+    L"Chaos Wastes",
+
+    L"The Blighted Isle",
+    L"Chrace",
+
+    L"The Shadowlands",
+    L"Ellyrion",
+
+    L"Avelorn",
+    L"Saphery",
+
+    L"Eateine",
+    L"Dragonwake",
+    L"Caledor",
+}
 local resses = {
     [L"Stand, Coward!"]=9558,--DoK
     [L"Gedup!"]=1908,--Shaman
@@ -207,10 +247,11 @@ local function isInAllowedZone()
     if GameData.Player.isInSiege or GameData.Player.isInScenario then
         return false
     end
-    if RvRZones[GameData.Player.realm][GameData.Player.zone] ~= nil then
-        return true
+    if RvRZones[GameData.Player.realm][GameData.Player.zone] == nil then
+        return false
     end
-    return false
+    zone = GetCampaignZoneData( GameData.Player.zone )
+    return zone and not zone.locked
 end
 local function ui()
     local counter=1
@@ -311,18 +352,55 @@ function RvRContribution.OnHover()
     values = RvRContribution.Zones[zone]
     Tooltips.CreateTextOnlyTooltip ( SystemData.MouseOverWindow.name )
     Tooltips.SetTooltipText( 1, 1, towstring(zone))
-    Tooltips.SetTooltipText( 2, 1, towstring(values.rezz or 0)..L" Resses")
-    Tooltips.SetTooltipText( 3, 1, towstring(values.heal or 0)..L" Heal")
-    Tooltips.SetTooltipText( 4, 1, towstring(values.deaths or 0)..L" Deaths")
-    Tooltips.SetTooltipText( 5, 1, towstring(values.kills or 0)..L" Kills")
-    Tooltips.SetTooltipText( 6, 1, towstring(values.assist or 0)..L" Assists")
-    Tooltips.SetTooltipText( 7, 1, towstring(values.damage or 0)..L" Damage")
-    Tooltips.SetTooltipText( 8, 1, towstring(values.boxes or 0)..L" Boxes")
-    Tooltips.SetTooltipText( 9, 1, towstring(values.boxAssists or 0)..L" Box-Assists")
-    Tooltips.SetTooltipText( 10, 1, towstring(values.capture or 0)..L" Captures")
-    Tooltips.SetTooltipText( 11, 1, towstring(values.defence or 0)..L" Defends")
-    Tooltips.SetTooltipText( 12, 1, towstring(values.keep or 0)..L" Keeps")
-    Tooltips.SetTooltipText( 13, 1, towstring(values.keepDefence or 0)..L" Keep Defends")
+    local i = 2
+    if values.rezz and values.rezz > 0 then
+        Tooltips.SetTooltipText( i, 1, towstring(values.rezz)..L" Resses")
+        i = i+1
+    end
+    if values.deaths and values.deaths > 0 then
+        Tooltips.SetTooltipText( i, 1, towstring(values.deaths)..L" Deaths")
+        i = i+1
+    end
+    if values.heal and values.heal > 0 then
+        Tooltips.SetTooltipText( i, 1, towstring(values.heal)..L" Heal")
+        i = i+1
+    end
+    if values.damage and values.damage > 0 then
+        Tooltips.SetTooltipText( i, 1, towstring(values.damage)..L" Damage")
+        i = i+1
+    end
+    if values.kills and values.kills > 0 then
+        Tooltips.SetTooltipText( i, 1, towstring(values.kills)..L" Kills")
+        i = i+1
+    end
+    if values.assist and values.assist > 0 then
+        Tooltips.SetTooltipText( i, 1, towstring(values.assist)..L" Assists")
+        i = i+1
+    end
+    if values.boxes and values.boxes > 0 then
+        Tooltips.SetTooltipText( i, 1, towstring(values.boxes)..L" Boxes")
+        i = i+1
+    end
+    if values.boxAssists and values.boxAssists > 0 then
+        Tooltips.SetTooltipText( i, 1, towstring(values.boxAssists)..L" Box-Assists")
+        i = i+1
+    end
+    if values.capture and values.capture > 0 then
+        Tooltips.SetTooltipText( i, 1, towstring(values.capture)..L" Captures")
+        i = i+1
+    end
+    if values.keep and values.keep > 0 then
+        Tooltips.SetTooltipText( i, 1, towstring(values.keep)..L" Keeps")
+        i = i+1
+    end
+    if values.defence and values.defence > 0 then
+        Tooltips.SetTooltipText( i, 1, towstring(values.defence)..L" Defences")
+        i = i+1
+    end
+    if values.keepDefence and values.keepDefence > 0 then
+        Tooltips.SetTooltipText( i, 1, towstring(values.keepDefence)..L" Keep Defences")
+        i = i+1
+    end
     Tooltips.Finalize()
     local rootWidth,rootHeight = WindowGetDimensions("Root")
     local mglX,mglY = WindowGetScreenPosition(mouseWin)
@@ -434,7 +512,7 @@ function RvRContribution.OnZone()
         RvRContribution.OnZoneUpdate(zone)
     end
 end
-function RvRContribution.OnChat(updateType, filter)--SystemData.ChatLogFilters
+function RvRContribution.OnChat(updateType, filter)
     if updateType ~= SystemData.TextLogUpdate.ADDED then
         return
     end
@@ -491,10 +569,15 @@ function RvRContribution.OnChat(updateType, filter)--SystemData.ChatLogFilters
         elseif msg:match(L"^You gain [0-9]+ renown from defending (.+)\.$") then
             local keep = msg:match(L"^You gain [0-9]+ renown from defending (.+)\.$")
             local found = false
-            d(keep)
             for keepName,pairing in pairs(Keeps) do
                 if keep == keepName then
                     add('keepDefence', 1, pairing[GameData.Player.realm])
+                    found = true
+                    break
+                end
+            end
+            for _, zone in pairs(Zones) do
+                if keep == zone then
                     found = true
                     break
                 end
