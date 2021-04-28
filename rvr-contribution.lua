@@ -15,8 +15,8 @@ local win = {
     defence=10,
     keepDefence=50,
     keep=100,
-    heal=0.0002,
-    damage=0.0002,
+    heal=0.00015,
+    damage=0.00015,
     deaths=1,
     rezz=10,
     kills=10,
@@ -29,8 +29,8 @@ local loss = {
     defence=10,
     keepDefence=50,
     keep=100,
-    heal=0.0002,
-    damage=0.0002,
+    heal=0.00015,
+    damage=0.00015,
     deaths=1,
     rezz=10,
     kills=10,
@@ -309,8 +309,12 @@ local function add(key, amount, zone)
     end
     for i=1,amount do
         RvRContribution.Zones[zone][key] = RvRContribution.Zones[zone][key] + 1
-        RvRContribution.Zones[zone].win = RvRContribution.Zones[zone].win + win[key] * factor / math.pow(1.175, (RvRContribution.Zones[zone][key] - 1)/scale[key])
-        RvRContribution.Zones[zone].loss = RvRContribution.Zones[zone].loss + loss[key] * factor / math.pow(1.175, (RvRContribution.Zones[zone][key] - 1)/scale[key]) 
+        local scaling = 1/ math.pow(1.175, (RvRContribution.Zones[zone][key] - 1)/scale[key])
+        if scaling < 0.1 then
+            scaling = 0.1
+        end
+        RvRContribution.Zones[zone].win = RvRContribution.Zones[zone].win + win[key] * factor * scaling
+        RvRContribution.Zones[zone].loss = RvRContribution.Zones[zone].loss + loss[key] * factor * scaling 
     end
     if (math.floor(winValue) ~= math.floor(RvRContribution.Zones[zone].win) or math.floor(lossValue) ~= math.floor(RvRContribution.Zones[zone].loss)) and RvRContribution.Config.alert then
         notify(GameData.Player.zone)
