@@ -6,7 +6,6 @@ local timePQ = 0
 local lastBOStatus = ""
 local previousBOStatus = ""
 local keepBonus = 1
-local keepName = L""
 local flagBonus = 1
 local aao = 1
 local aaoBuffId = 0
@@ -35,8 +34,8 @@ local loss = {
     rezz=10,
     kills=10,
     assist=5,
-    boxes=0,
-    boxAssists=0,
+    boxes=5,
+    boxAssists=1,
     capture=5
 }
 local scale = {
@@ -104,8 +103,8 @@ local Keeps = {
     [L"Ghrond's Sacristy"]={"T3 Elves", "T3 Elves"},
     [L"The Well of Qhaysh"]={"T3 Elves", "T3 Elves"},
 
-    [L"Pillars of Remembrance"]={"Eateine", "Eateine"},
-    [L"Arbor of Light"]={"Eateine", "Eateine"},
+    [L"Pillars of Remembrance"]={"Eataine", "Eataine"},
+    [L"Arbor of Light"]={"Eataine", "Eataine"},
 
     [L"Drakebreaker's Scourge"]={"Dragonwake", "Dragonwake"},
     [L"Covenant of Flame"]={"Dragonwake", "Dragonwake"},
@@ -196,44 +195,44 @@ local RvRZones = {
     },
 }
 local Zones = {
-    L"Erkrund",
-    L"Mount Bloodhorn",
+    [L"Erkrund and Mount Bloodhorn"]={"T1 Dwarf", "T1 Greenskin"},
+    [L"Mount Bloodhorn and Erkrund"]={"T1 Dwarf", "T1 Greenskin"},
 
-    L"Barak Varr",
-    L"Marshes of Madness",
+    [L"Barak Varr and Marshes of Madness"]={"T2 Dwarf", "T2 Greenskin"},
+    [L"Marshes of Madness and Barak Varr"]={"T2 Dwarf", "T2 Greenskin"},
 
-    L"Black Fire Pass",
-    L"The Badlands",
+    [L"Black Fire Pass and The Badlands"]={"T3 Dwarf", "T3 Greenskin"},
+    [L"The Badlands and Black Fire Pass"]={"T3 Dwarf", "T3 Greenskin"},
 
-    L"Kadrin Valley",
-    L"Thunder Mountain",
-    L"Black Crag",
+    [L"Kadrin Valley"]={"Kadrin Valley", "Kadrin Valley"},
+    [L"Thunder Mountain"]={"Thunder Mountain", "Thunder Mountain"},
+    [L"Black Crag"]={"Black Crag", "Black Crag"},
 
-    L"Nordland",
-    L"Norsca",
+    [L"Nordland and Norsca"]={"T1 Empire", "T1 Chaos"},
+    [L"Norsca and Nordland"]={"T1 Empire", "T1 Chaos"},
 
-    L"Troll Country",
-    L"Ostland",
+    [L"Troll Country and Ostland"]={"T2 Empire", "T2 Chaos"},
+    [L"Ostland and Troll Country"]={"T2 Empire", "T2 Chaos"},
 
-    L"High Pass",
-    L"Talabecland",
+    [L"High Pass and Talabecland"]={"T3 Empire","T3 Chaos"},
+    [L"Talabecland and High Pass"]={"T3 Empire","T3 Chaos"},
 
-    L"Reikland",
-    L"Praag",
-    L"Chaos Wastes",
+    [L"Reikland"]={"Reikland","Reikland"},
+    [L"Praag"]={"Praag","Praag"},
+    [L"Chaos Wastes"]={"Chaos Wastes","Chaos Wastes"},
 
-    L"The Blighted Isle",
-    L"Chrace",
+    [L"The Blighted Isle and Chrace"]={"T1 Elves","T1 Elves"},
+    [L"Chrace and The Blighted Isle"]={"T1 Elves","T1 Elves"},
 
-    L"The Shadowlands",
-    L"Ellyrion",
+    [L"The Shadowlands and Ellyrion"]={"T2 Elves","T2 Elves"},
+    [L"Ellyrion and The Shadowlands"]={"T2 Elves","T2 Elves"},
 
-    L"Avelorn",
-    L"Saphery",
+    [L"Avelorn and Saphery"]={"T3 Elves","T3 Elves"},
+    [L"Saphery and Avelorn"]={"T3 Elves","T3 Elves"},
 
-    L"Eateine",
-    L"Dragonwake",
-    L"Caledor",
+    [L"Eataine"]={"Eataine","Eataine"},
+    [L"Dragonwake"]={"Dragonwake","Dragonwake"},
+    [L"Caledor"]="Caledor",
 }
 local resses = {
     [L"Stand, Coward!"]=9558,--DoK
@@ -243,6 +242,11 @@ local resses = {
     [L"Breath of Sigmar"]=8248,--WP
     [L"Gift of Life"]=9246,--AM
 }
+local Log = {
+    name="RvRContribution",
+    id=9799,
+}
+local zoneToReset = {zone="",time=0}
 local function isInAllowedZone()
     if GameData.Player.isInSiege or GameData.Player.isInScenario then
         return false
@@ -333,14 +337,22 @@ local function slash(input)
         TextLogAddEntry("Chat", SystemData.ChatLogFilters.SAY, L"Avaible commands: alert, dump")
     end
 end
-function resetZone(zone)
+function resetZoneInternal(zone, log)
     local message = zone;
     for key,value in pairs(RvRContribution.Zones[zone]) do
         if key ~= "used" and value ~= 0 then
             message = message.." "..key..": "..tostring(math.floor(value))
         end
     end
-    TextLogAddEntry("Chat", SystemData.ChatLogFilters.RVR, towstring(message))
+    if PQData and PQData.playerData and PQData.playerData.contribution then
+        message = message.." contribution: "..tostring(PQData.playerData.contribution)
+    end
+    if message ~= zone then
+        TextLogAddEntry("Chat", SystemData.ChatLogFilters.RVR, towstring(message))
+        if log then
+            TextLogAddEntry(Log.name, Log.id, towstring(message))
+        end
+    end
     RvRContribution.Zones[zone] = nil
     local window = "RvRContribution"..zone:gsub(" ","_")
     if DoesWindowExist(window) then
@@ -348,6 +360,28 @@ function resetZone(zone)
     end
     RvRContribution.Zones[zone] = {heal=0,damage=0,rezz=0,kills=0,assist=0,boxes=0,boxAssists=0,capture=0,used=false,win=0,loss=0}
     ui()
+end
+function resetZone(zone, log)
+    if log then
+        zoneToReset={zone=zone,time=90}
+        return
+    end
+    resetZoneInternal(zone, log)
+end
+function RvRContribution.OnUpdateReset(elapsed)
+    if zoneToReset.zone == "" then
+        return
+    end
+    if zoneToReset.time < 0 then
+        resetZoneInternal(zoneToReset.zone, true)
+        zoneToReset={zone="",time=0}
+        return
+    end
+    if PQData and PQData.playerData and PQData.playerData.contribution then
+        resetZoneInternal(zoneToReset.zone, true)
+        zoneToReset={zone="",time=0}
+    end
+    zoneToReset.time = zoneToReset.time - elapsed
 end
 function RvRContribution.OnHover()
     local mouseWin = SystemData.MouseOverWindow.name
@@ -476,6 +510,10 @@ function RvRContribution.OnInitialize()
     LabelSetText(header.."Win", L"Win")
     LabelSetText(header.."Loss", L"Loss")
     ui()
+    --log
+    TextLogCreate(Log.name, Log.id)
+    TextLogSetIncrementalSaving(Log.name, true, L"logs/rvr-contribution.log")
+    TextLogSetEnabled(Log.name, true ) 
 end
 function RvRContribution.OnPairingUpdate( pairingId )
     for zone, _ in pairs(RvRZones[1]) do
@@ -564,10 +602,21 @@ function RvRContribution.OnChat(updateType, filter)
             add('kills')
         elseif msg:match(L"^You gain [0-9]+ renown from capturing (.+)\.$") then
             local keep = msg:match(L"^You gain [0-9]+ renown from capturing (.+)\.$")
+            local found = false
             for keepName,pairing in pairs(Keeps) do
                 if keep == keepName then
                     add('keep', 1, pairing[GameData.Player.realm])
+                    found = true
                     break
+                end
+            end
+            if not found then
+                for zone, pairing in pairs(Zones) do
+                    if keep == zone then
+                        found = true
+                        resetZone(pairing[GameData.Player.realm], true)
+                        break
+                    end
                 end
             end
         elseif msg:match(L"^You gain [0-9]+ renown from defending (.+)\.$") then
@@ -580,10 +629,13 @@ function RvRContribution.OnChat(updateType, filter)
                     break
                 end
             end
-            for _, zone in pairs(Zones) do
-                if keep == zone then
-                    found = true
-                    break
+            if not found then
+                for zone, pairing in pairs(Zones) do
+                    if keep == zone then
+                        found = true
+                        resetZone(pairing[GameData.Player.realm], true)
+                        break
+                    end
                 end
             end
             if not found then
@@ -614,7 +666,7 @@ function RvRContribution.OnZoneUpdate(zoneId)
         if not name or not RvRContribution.Zones[name] then
             return
         end
-        resetZone(name)
+        resetZone(name, true)
     end
 end
 function RvRContribution.OnUpdatePQ(elapsed)
@@ -635,7 +687,7 @@ function RvRContribution.OnUpdatePQ(elapsed)
     local quests = GetActiveObjectivesData()
     for key, quest in pairs(quests) do
         if quest.isBattlefieldObjective and not quest.isKeep then
-            flagBonus = 1.1
+            flagBonus = 1.25
             for k,q in pairs(quest.Quest) do
                 if lastBOStatus ~= quest.name..q.name then
                     previousBOStatus = quest.name..q.name
@@ -645,7 +697,7 @@ function RvRContribution.OnUpdatePQ(elapsed)
                 lastBOStatus = quest.name..q.name
             end
         elseif quest.isKeep then
-            keepBonus = 1.25
+            keepBonus = 1.5
         end
     end
 end
