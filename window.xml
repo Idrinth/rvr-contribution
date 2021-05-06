@@ -51,7 +51,7 @@
                 <EventHandler event="OnRButtonUp" function="RvRContribution.OnRButtonUp"/>
             </EventHandlers>
         </Window>
-        <Window name="RvRContributionHeader" handleinput="false">
+        <Window name="RvRContributionHeader" handleinput="true">
             <Size>
                 <AbsPoint x="275" y="30" />
             </Size>
@@ -66,7 +66,7 @@
                         </Anchor>
                     </Anchors>
                 </Label>
-                <Label handleinput="false" name="$parentWin" font="font_default_text_small" textalign="right">
+                <Label handleinput="true" name="$parentWin" font="font_default_text_small" textalign="right">
                     <Size>
                         <AbsPoint x="75" y="30" />
                     </Size>
@@ -75,8 +75,11 @@
                             <AbsPoint x="-75" y="6" />
                         </Anchor>
                     </Anchors>
+                    <EventHandlers>
+                        <EventHandler event="OnMouseOver" function="RvRContribution.OnHoverWin"/>
+                    </EventHandlers>
                 </Label>
-                <Label handleinput="false" name="$parentLoss" font="font_default_text_small" textalign="right">
+                <Label handleinput="true" name="$parentLoss" font="font_default_text_small" textalign="right">
                     <Size>
                         <AbsPoint x="75" y="30" />
                     </Size>
@@ -85,6 +88,9 @@
                             <AbsPoint x="0" y="6" />
                         </Anchor>
                     </Anchors>
+                    <EventHandlers>
+                        <EventHandler event="OnMouseOver" function="RvRContribution.OnHoverLoss"/>
+                    </EventHandlers>
                 </Label>
             </Windows>
     	</Window>

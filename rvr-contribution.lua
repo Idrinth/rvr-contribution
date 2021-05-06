@@ -97,11 +97,11 @@ local Keeps = {
     [L"Charon's Keep"]={"Chaos Wastes", "Chaos Wastes"},
     [L"Zimmeron's Hold"]={"Chaos Wastes", "Chaos Wastes"},
 
-    [L"Spite's Reach"]={"T2 Elves", "T2 Elves"},
-    [L"Cascades of Thunder"]={"T2 Elves", "T2 Elves"},
+    [L"Spite's Reach"]={"T2 Elf", "T2 Elf"},
+    [L"Cascades of Thunder"]={"T2 Elf", "T2 Elf"},
 
-    [L"Ghrond's Sacristy"]={"T3 Elves", "T3 Elves"},
-    [L"The Well of Qhaysh"]={"T3 Elves", "T3 Elves"},
+    [L"Ghrond's Sacristy"]={"T3 Elf", "T3 Elf"},
+    [L"The Well of Qhaysh"]={"T3 Elf", "T3 Elf"},
 
     [L"Pillars of Remembrance"]={"Eataine", "Eataine"},
     [L"Arbor of Light"]={"Eataine", "Eataine"},
@@ -140,14 +140,14 @@ local RvRZones = {
         [105]="Praag",
         [103]="Chaos Wastes",
 
-        [206]="T1 Elves",
-        [200]="T1 Elves",
+        [206]="T1 Elf",
+        [200]="T1 Elf",
 
-        [201]="T2 Elves",
-        [207]="T2 Elves",
+        [201]="T2 Elf",
+        [207]="T2 Elf",
 
-        [202]="T3 Elves",
-        [208]="T3 Elves",
+        [202]="T3 Elf",
+        [208]="T3 Elf",
 
         [209]="Eateine",
         [205]="Dragonwake",
@@ -180,14 +180,14 @@ local RvRZones = {
         [105]="Praag",
         [103]="Chaos Wastes",
 
-        [206]="T1 Elves",
-        [200]="T1 Elves",
+        [206]="T1 Elf",
+        [200]="T1 Elf",
 
-        [201]="T2 Elves",
-        [207]="T2 Elves",
+        [201]="T2 Elf",
+        [207]="T2 Elf",
 
-        [202]="T3 Elves",
-        [208]="T3 Elves",
+        [202]="T3 Elf",
+        [208]="T3 Elf",
 
         [209]="Eateine",
         [205]="Dragonwake",
@@ -221,18 +221,108 @@ local Zones = {
     [L"Praag"]={"Praag","Praag"},
     [L"Chaos Wastes"]={"Chaos Wastes","Chaos Wastes"},
 
-    [L"The Blighted Isle and Chrace"]={"T1 Elves","T1 Elves"},
-    [L"Chrace and The Blighted Isle"]={"T1 Elves","T1 Elves"},
+    [L"The Blighted Isle and Chrace"]={"T1 Elf","T1 Elf"},
+    [L"Chrace and The Blighted Isle"]={"T1 Elf","T1 Elf"},
 
-    [L"The Shadowlands and Ellyrion"]={"T2 Elves","T2 Elves"},
-    [L"Ellyrion and The Shadowlands"]={"T2 Elves","T2 Elves"},
+    [L"The Shadowlands and Ellyrion"]={"T2 Elf","T2 Elf"},
+    [L"Ellyrion and The Shadowlands"]={"T2 Elf","T2 Elf"},
 
-    [L"Avelorn and Saphery"]={"T3 Elves","T3 Elves"},
-    [L"Saphery and Avelorn"]={"T3 Elves","T3 Elves"},
+    [L"Avelorn and Saphery"]={"T3 Elf","T3 Elf"},
+    [L"Saphery and Avelorn"]={"T3 Elf","T3 Elf"},
 
     [L"Eataine"]={"Eataine","Eataine"},
     [L"Dragonwake"]={"Dragonwake","Dragonwake"},
     [L"Caledor"]="Caledor",
+}
+local BattlefieldObjectives = {
+    [L"Stonemine Tower"]={"T1 Dwarf", "T1 Greenskin",},
+    [L"Cannon Battery"]={"T1 Dwarf", "T1 Greenskin",},
+    [L"Ironmane Outpost"]={"T1 Dwarf", "T1 Greenskin",},
+    [L"The Lookout"]={"T1 Dwarf", "T1 Greenskin",},
+
+    [L"Goblin Armory"]={"T2 Dwarf", "T2 Greenskin",},
+    [L"Alcadizzar's Tomb"]={"T2 Dwarf", "T2 Greenskin",},
+    [L"The Ironclad"]={"T2 Dwarf", "T2 Greenskin",},
+    [L"The Lighthouse"]={"T2 Dwarf", "T2 Greenskin",},
+
+    [L"Karagaz"]={"T3 Dwarf", "T3 Greenskin",},
+    [L"Goblin Artillery Range"]={"T3 Dwarf", "T3 Greenskin",},
+    [L"Bugman's Brewery"]={"T3 Dwarf", "T3 Greenskin",},
+    [L"Furrig's Fall"]={"T3 Dwarf", "T3 Greenskin",},
+
+    [L"Lobba Mill"]={"Black Crag", "Black Crag",},
+    [L"Rottenpike Ravine"]={"Black Crag", "Black Crag",},
+    [L"Madcap Pickins"]={"Black Crag", "Black Crag",},
+    [L"Squiggly Beast Pens"]={"Black Crag", "Black Crag",},
+
+    [L"Gromril Kruk"]={"Thunder Mountain", "Thunder Mountain",},
+    [L"Karak Palik"]={"Thunder Mountain", "Thunder Mountain",},
+    [L"Doomstriker Vein"]={"Thunder Mountain", "Thunder Mountain",},
+    [L"Thargrim's Headwall"]={"Thunder Mountain", "Thunder Mountain",},
+
+    [L"Gromril Junction"]={"Kadrin Valley", "Kadrin Valley",},
+    [L"Dolgrund's Cairn"]={"Kadrin Valley", "Kadrin Valley",},
+    [L"Icehearth Crossing"]={"Kadrin Valley", "Kadrin Valley",},
+    [L"Hardwater Falls"]={"Kadrin Valley", "Kadrin Valley",},
+
+    [L"The Harvest Shrine"]={"T1 Empire", "T1 Chaos",},
+    [L"Festenplatz"]={"T1 Empire", "T1 Chaos",},
+    [L"The Nordland XI"]={"T1 Empire", "T1 Chaos",},
+
+    [L"Ruins of Greystone Keep"]={"T2 Empire", "T2 Chaos",},
+    [L"Monastery of Morr"]={"T2 Empire", "T2 Chaos",},
+    [L"Kinschel's Stronghold"]={"T2 Empire", "T2 Chaos",},
+    [L"Crypt of Weapons"]={"T2 Empire", "T2 Chaos",},
+
+    [L"Feiten's Lock"]={"T3 Empire", "T3 Chaos",},
+    [L"Ogrund's Tavern"]={"T3 Empire", "T3 Chaos",},
+    [L"Hallenfurt Manor"]={"T3 Empire", "T3 Chaos",},
+    [L"Verentane's Tower"]={"T3 Empire", "T3 Chaos",},
+
+    [L"Runehammer Gunworks"]={"Reikland", "Reikland",},
+    [L"Schwenderhalle Manor"]={"Reikland", "Reikland",},
+    [L"Reikwatch"]={"Reikland", "Reikland",},
+    [L"Frostbeard's Quarry"]={"Reikland", "Reikland",},
+
+    [L"Russenscheller Graveyard"]={"Praag", "Praag",},
+    [L"Manor of Ortel von Zaris"]={"Praag", "Praag",},
+    [L"Martyr's Square"]={"Praag", "Praag",},
+    [L"Kurlov's Armory"]={"Praag", "Praag",},
+
+    [L"The Shrine of Time"]={"Chaos Wastes", "Chaos Wastes",},
+    [L"The Statue of the Everchosen"]={"Chaos Wastes", "Chaos Wastes",},
+    [L"Thaugamond Massif"]={"Chaos Wastes", "Chaos Wastes",},
+    [L"Chokethorn Bramble"]={"Chaos Wastes", "Chaos Wastes",},
+
+    [L"The House of Lorendyth"]={"T1 Elf", "T1 Elf",},
+    [L"Altair of Khaine"]={"T1 Elf", "T1 Elf",},
+    [L"The Tower of Nightflame"]={"T1 Elf", "T1 Elf",},
+    [L"The Shard of Grief"]={"T1 Elf", "T1 Elf",},
+
+    [L"Shadow Spire"]={"T2 Elf", "T2 Elf",},
+    [L"Unicorn Siege Camp"]={"T2 Elf", "T2 Elf",},
+    [L"The Reaver Stables"]={"T2 Elf", "T2 Elf",},
+    [L"The Needle of Ellyrion"]={"T2 Elf", "T2 Elf",},
+
+    [L"Wood Choppaz Camp"]={"T3 Elf", "T3 Elf",},
+    [L"Maiden's Landing"]={"T3 Elf", "T3 Elf",},
+    [L"The Spire of Teclis"]={"T3 Elf", "T3 Elf",},
+    [L"Saei' Daroir"]={"T2 Elf", "T3 Elf",},
+
+    [L"Druchii Baracks"]={"Caledor", "Caledor",},
+    [L"Shrine of the Conqueror"]={"Caledor", "Caledor",},
+    [L"Sarathanan Vale"]={"Caledor", "Caledor",},
+    [L"Senlathain Stand"]={"Caledor", "Caledor",},
+
+    [L"Fireguard Spire"]={"Dragonwake", "Dragonwake",},
+    [L"Mournfire's Approach"]={"Dragonwake", "Dragonwake",},
+    [L"Pelgorath's Ember"]={"Dragonwake", "Dragonwake",},
+    [L"Milaith's Memory"]={"Dragonwake", "Dragonwake",},
+
+    [L"Chillwind Manor"]={"Eataine", "Eataine",},
+    [L"Bel-Korhadris' Solitude"]={"Eataine", "Eataine",},
+    [L"Sanctuary of Dreams"]={"Eataine", "Eataine",},
+    [L"Uthorin Siege Camp"]={"Eataine", "Eataine",},
 }
 local resses = {
     [L"Stand, Coward!"]=9558,--DoK
@@ -241,6 +331,8 @@ local resses = {
     [L"Rune of Life"]=1598,--RP
     [L"Breath of Sigmar"]=8248,--WP
     [L"Gift of Life"]=9246,--AM
+    [L"Rally"]=14526,--Banner Ress
+    [L"Alter Fate"]=697,--Morale 4 ress
 }
 local Log = {
     name="RvRContribution",
@@ -285,7 +377,7 @@ local function notify(zone)
     if not values then
         return
     end
-    notifications[name] = {towstring(name..": "..tostring(math.floor(values.win)).."|"..tostring(math.floor(values.loss)))}
+    notifications[name] = {towstring(name.." Win: "..tostring(math.floor(values.win)).." Loss: "..tostring(math.floor(values.loss)))}
 end
 local function add(key, amount, zone)
     if amount == nil then
@@ -383,6 +475,30 @@ function RvRContribution.OnUpdateReset(elapsed)
     end
     zoneToReset.time = zoneToReset.time - elapsed
 end
+local function getTooltipAnchor()
+    local mouseWin = SystemData.MouseOverWindow.name
+    local rootWidth,rootHeight = WindowGetDimensions("Root")
+    local mglX,mglY = WindowGetScreenPosition(mouseWin)
+    local anchor = nil
+    if mglX*2 > rootWidth then
+        return { Point = "topleft",  RelativeTo = mouseWin, RelativePoint = "topright",   XOffset = -10, YOffset = 0 }
+    end
+    return { Point = "topright",  RelativeTo = mouseWin, RelativePoint = "topleft",   XOffset = 10, YOffset = 0 }
+end
+function RvRContribution.OnHoverWin()
+    Tooltips.CreateTextOnlyTooltip ( SystemData.MouseOverWindow.name )
+    Tooltips.SetTooltipText( 1, 1, L"Zone Won")
+    Tooltips.SetTooltipText( 2, 1, L"Your contribution on winning a zone is listed here. It differs from the contribution when losing a zone.")
+    Tooltips.Finalize()
+    Tooltips.AnchorTooltip( getTooltipAnchor() )
+end
+function RvRContribution.OnHoverLoss()
+    Tooltips.CreateTextOnlyTooltip ( SystemData.MouseOverWindow.name )
+    Tooltips.SetTooltipText( 1, 1, L"Zone Lost")
+    Tooltips.SetTooltipText( 2, 1, L"Your contribution on losing a zone is listed here. It differs from the contribution when winning a zone.")
+    Tooltips.Finalize()
+    Tooltips.AnchorTooltip( getTooltipAnchor() )
+end
 function RvRContribution.OnHover()
     local mouseWin = SystemData.MouseOverWindow.name
     local zone = mouseWin:match("^RvRContribution(.+)$")
@@ -440,15 +556,7 @@ function RvRContribution.OnHover()
         i = i+1
     end
     Tooltips.Finalize()
-    local rootWidth,rootHeight = WindowGetDimensions("Root")
-    local mglX,mglY = WindowGetScreenPosition(mouseWin)
-    local anchor = nil
-    if mglX*2 > rootWidth then
-        anchor = { Point = "topleft",  RelativeTo = mouseWin, RelativePoint = "topright",   XOffset = -10, YOffset = 0 }
-    else
-        anchor = { Point = "topright",  RelativeTo = mouseWin, RelativePoint = "topleft",   XOffset = 10, YOffset = 0 }
-    end
-    Tooltips.AnchorTooltip( anchor )
+    Tooltips.AnchorTooltip( getTooltipAnchor() )
 end
 function RvRContribution.OnRButtonUp()
     local mouseWin = SystemData.MouseOverWindow.name
@@ -529,6 +637,7 @@ function RvRContribution.OnEndCast(interupted)
     end
 end
 function RvRContribution.OnCast(abilityId)
+    d(abilityId)
     if not isInAllowedZone() then
         return
     end
@@ -639,7 +748,13 @@ function RvRContribution.OnChat(updateType, filter)
                 end
             end
             if not found then
-                add('defence')
+                for boName,pairing in pairs(BattlefieldObjectives) do
+                    if keep == boName then
+                        add('defence', 1, pairing[GameData.Player.realm])
+                        found = true
+                        break
+                    end
+                end
             end
         end
     end
@@ -748,9 +863,6 @@ function RvRContribution.OnDeath()
         return
     end
     if GameData.Player.hitPoints.current > 0 then
-        return
-    end
-    if GameData.Player.killerName == L"" then
         return
     end
     add('deaths')
