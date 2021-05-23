@@ -10,6 +10,8 @@ local flagBonus = 1
 local aao = 1
 local aaoBuffId = 0
 local triesRezz = false
+local gloriousHeraldsBoonId = 0
+local gloriousHeraldsBoon = 1
 local win = {
     defence=10,
     keepDefence=50,
@@ -22,7 +24,7 @@ local win = {
     assist=5,
     boxes=70,
     boxAssists=35,
-    capture=5
+    capture=5,
 }
 local loss = {
     defence=10,
@@ -36,7 +38,7 @@ local loss = {
     assist=5,
     boxes=5,
     boxAssists=1,
-    capture=5
+    capture=5,
 }
 local scale = {
     defence=1,
@@ -50,7 +52,7 @@ local scale = {
     assist=1,
     boxes=1,
     boxAssists=1,
-    capture=1
+    capture=1,
 }
 local boBonus = {
     defence=false,
@@ -64,7 +66,7 @@ local boBonus = {
     assist=true,
     boxes=true,
     boxAssists=true,
-    capture=false
+    capture=false,
 }
 local Keeps = {
     [L"Dok Karaz"]={"T2 Dwarf", "T2 Greenskin"},
@@ -149,7 +151,7 @@ local RvRZones = {
         [202]="T3 Elf",
         [208]="T3 Elf",
 
-        [209]="Eateine",
+        [209]="Eataine",
         [205]="Dragonwake",
         [203]="Caledor",
     },
@@ -189,7 +191,7 @@ local RvRZones = {
         [202]="T3 Elf",
         [208]="T3 Elf",
 
-        [209]="Eateine",
+        [209]="Eataine",
         [205]="Dragonwake",
         [203]="Caledor",
     },
@@ -403,6 +405,7 @@ local function add(key, amount, zone)
     if boBonus[key] then
         factor = aao * keepBonus * flagBonus
     end
+    factor = factor * gloriousHeraldsBoon
     for i=1,amount do
         RvRContribution.Zones[zone][key] = RvRContribution.Zones[zone][key] + 1
         local scaling = 1/ math.pow(1.175, (RvRContribution.Zones[zone][key] - 1)/scale[key])
@@ -615,8 +618,8 @@ function RvRContribution.OnInitialize()
     LabelSetTextColor(header.."Loss",255,255,255)
     WindowAddAnchor(header, "topleft", "RvRContribution", "topleft", 0, 30)
     LabelSetText(header.."Pairing", L"Zone")
-    LabelSetText(header.."Win", L"Win")
-    LabelSetText(header.."Loss", L"Loss")
+    LabelSetText(header.."Win", L"Offence")
+    LabelSetText(header.."Loss", L"Defence")
     ui()
     --log
     TextLogCreate(Log.name, Log.id)
@@ -839,19 +842,23 @@ function RvRContribution.OnBuff(updatedBuffsTable, isFullList)
     if not updatedBuffsTable then
         return
     end
-    local deactivate = false
     for buffId, buffData in pairs( updatedBuffsTable ) do
         if buffData.name ~= nil then
             if buffData.abilityId == 24658 then--AAO
                 aaoBuffId = buffId
                 local percentage = string.match(tostring(buffData.effectText), 'increased by ([0-9]+)%%')
                 aao = 1 + tonumber(percentage)/100
-                return
+            elseif buffData.name == "Glorious Herald's Boon" or buffData.name == L"Glorious Herald's Boon" then--Glorious Herald's Boon
+                d(buffData.abilityId)
+                gloriousHeraldsBoonId = buffId
+                gloriousHeraldsBoon = 1.05
             end
         elseif aaoBuffId == buffId then
             aao = 1
             aaoBuffId = 0
-            return    
+        elseif gloriousHeraldsBoonId == buffId then
+            gloriousHeraldsBoonId = 0
+            gloriousHeraldsBoon = 1
         end
     end
 end
