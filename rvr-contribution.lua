@@ -14,7 +14,7 @@ local gloriousHeraldsBoonId = 0
 local gloriousHeraldsBoon = 1
 local win = {
     defence=10,
-    keepDefence=50,
+    keepDefence=0,
     keep=100,
     heal=0.00015,
     damage=0.00015,
@@ -29,7 +29,7 @@ local win = {
 local loss = {
     defence=10,
     keepDefence=50,
-    keep=100,
+    keep=0,
     heal=0.00015,
     damage=0.00015,
     deaths=1,
@@ -68,6 +68,13 @@ local boBonus = {
     boxAssists=true,
     capture=false,
 }
+local bags = {
+    ["white"] = 400,
+    ["green"] = 500,
+    ["blue"] = 600,
+    ["purple"] = 700,
+    ["gold"] = 800,
+}
 local Keeps = {
     [L"Dok Karaz"]={"T2 Dwarf", "T2 Greenskin"},
     [L"Fangbreaka Swamp"]={"T2 Dwarf", "T2 Greenskin"},
@@ -85,7 +92,7 @@ local Keeps = {
     [L"Badmoon Hole"]={"Black Crag", "Black Crag"},
 
     [L"Stonetroll Keep"]={"T2 Empire", "T2 Chaos"},
-    [L"Manded's Hold"]={"T2 Empire", "T2 Chaos"},
+    [L"Mandred's Hold"]={"T2 Empire", "T2 Chaos"},
 
     [L"Stoneclaw Castle"]={"T3 Empire", "T3 Chaos"},
     [L"Passwatch Castle"]={"T3 Empire", "T3 Chaos"},
@@ -336,6 +343,18 @@ local resses = {
     [L"Rally"]=14526,--Banner Ress
     [L"Alter Fate"]=697,--Morale 4 ress
 }
+local noBoxBonus = {
+    ["T2 Greenskin"] = true,
+    ["T2 Dwarf"] = true,
+    ["T3 Greenskin"] = true,
+    ["T3 Dwarf"] = true,
+    ["T2 Chaos"] = true,
+    ["T2 Empire"] = true,
+    ["T3 Chaos"] = true,
+    ["T3 Empire"] = true,
+    ["T2 Elf"] = true,
+    ["T3 Elf"] = true,
+}
 local Log = {
     name="RvRContribution",
     id=9799,
@@ -401,11 +420,13 @@ local function add(key, amount, zone)
     RvRContribution.Zones[zone].used = true
     local winValue = RvRContribution.Zones[zone].win
     local lossValue = RvRContribution.Zones[zone].loss
-    local factor = 1
+    local factor = gloriousHeraldsBoon
     if boBonus[key] then
-        factor = aao * keepBonus * flagBonus
+        factor = aao * flagBonus
+        if not noBoxBonus[zone] or (key ~= "boxes" and key ~= "boxAssists") then
+            factor = factor * keepBonus
+        end
     end
-    factor = factor * gloriousHeraldsBoon
     for i=1,amount do
         RvRContribution.Zones[zone][key] = RvRContribution.Zones[zone][key] + 1
         local scaling = 1/ math.pow(1.175, (RvRContribution.Zones[zone][key] - 1)/scale[key])
@@ -427,12 +448,12 @@ local function slash(input)
         end
     elseif input == "alert" then
         RvRContribution.Config.alert = not RvRContribution.Config.alert
-        TextLogAddEntry("Chat", SystemData.ChatLogFilters.SAY, L"Alert enabled? "..towstring(RvRContribution.Config.alert))
+        TextLogAddEntry("Chat", SystemData.ChatLogFilters.SAY, towstring("Alert enabled? "..tostring(RvRContribution.Config.alert)))
     else
         TextLogAddEntry("Chat", SystemData.ChatLogFilters.SAY, L"Avaible commands: alert, dump")
     end
 end
-function resetZoneInternal(zone, log)
+local function resetZoneInternal(zone, log)
     local message = zone;
     for key,value in pairs(RvRContribution.Zones[zone]) do
         if key ~= "used" and value ~= 0 then
@@ -456,7 +477,7 @@ function resetZoneInternal(zone, log)
     RvRContribution.Zones[zone] = {heal=0,damage=0,rezz=0,kills=0,assist=0,boxes=0,boxAssists=0,capture=0,used=false,win=0,loss=0}
     ui()
 end
-function resetZone(zone, log)
+local function resetZone(zone, log)
     if log then
         zoneToReset={zone=zone,time=90}
         return
@@ -498,7 +519,7 @@ end
 function RvRContribution.OnHoverLoss()
     Tooltips.CreateTextOnlyTooltip ( SystemData.MouseOverWindow.name )
     Tooltips.SetTooltipText( 1, 1, L"Zone Lost")
-    Tooltips.SetTooltipText( 2, 1, L"Your contribution on losing a zone is listed here. It differs from the contribution when winning a zone.")
+    Tooltips.SetTooltipText( 2, 1, L"Your contribution on losing a zone or defending a keep is listed here. It differs from the contribution when winning a zone.")
     Tooltips.Finalize()
     Tooltips.AnchorTooltip( getTooltipAnchor() )
 end
