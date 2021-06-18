@@ -18,6 +18,7 @@ local win = {
     keep=100,
     heal=0.00015,
     damage=0.00015,
+    protection=0.00015,
     deaths=1,
     rezz=10,
     kills=10,
@@ -32,6 +33,7 @@ local loss = {
     keep=0,
     heal=0.00015,
     damage=0.00015,
+    protection=0.00015,
     deaths=1,
     rezz=10,
     kills=10,
@@ -46,6 +48,7 @@ local scale = {
     keep=1,
     heal=500000,
     damage=500000,
+    protection=500000,
     deaths=1,
     rezz=1,
     kills=1,
@@ -60,6 +63,7 @@ local boBonus = {
     keep=false,
     heal=true,
     damage=true,
+    protection=true,
     deaths=true,
     rezz=true,
     kills=true,
@@ -70,10 +74,10 @@ local boBonus = {
 }
 local bags = {
     ["white"] = 400,
-    ["green"] = 500,
-    ["blue"] = 600,
-    ["purple"] = 700,
-    ["gold"] = 800,
+    ["green"] = 600,
+    ["blue"] = 800,
+    ["purple"] = 1000,
+    ["gold"] = 1200,
 }
 local Keeps = {
     [L"Dok Karaz"]={"T2 Dwarf", "T2 Greenskin"},
@@ -360,6 +364,10 @@ local Log = {
     id=9799,
 }
 local zoneToReset = {zone="",time=0}
+local function printHelp()
+    TextLogAddEntry("Chat", SystemData.ChatLogFilters.SAY, L"RvRContribution")
+    TextLogAddEntry("Chat", SystemData.ChatLogFilters.SAY, L"/rvrc alert -- toggle alert")
+end
 local function isInAllowedZone()
     if GameData.Player.isInSiege or GameData.Player.isInScenario then
         return false
@@ -442,15 +450,11 @@ local function add(key, amount, zone)
     ui()
 end
 local function slash(input)
-    if input == "dump" then
-        for zone, values in pairs(RvRContribution.Zones) do
-            notify(zone)
-        end
-    elseif input == "alert" then
+    if input == "alert" then
         RvRContribution.Config.alert = not RvRContribution.Config.alert
         TextLogAddEntry("Chat", SystemData.ChatLogFilters.SAY, towstring("Alert enabled? "..tostring(RvRContribution.Config.alert)))
     else
-        TextLogAddEntry("Chat", SystemData.ChatLogFilters.SAY, L"Avaible commands: alert, dump")
+        printHelp()
     end
 end
 local function resetZoneInternal(zone, log)
@@ -547,6 +551,10 @@ function RvRContribution.OnHover()
         Tooltips.SetTooltipText( i, 1, towstring(values.damage)..L" Damage")
         i = i+1
     end
+    if values.protection and values.protection > 0 then
+        Tooltips.SetTooltipText( i, 1, towstring(values.protection)..L" Protection")
+        i = i+1
+    end
     if values.kills and values.kills > 0 then
         Tooltips.SetTooltipText( i, 1, towstring(values.kills)..L" Kills")
         i = i+1
@@ -614,7 +622,7 @@ function RvRContribution.OnInitialize()
     --Deaths
     RegisterEventHandler(SystemData.Events.PLAYER_DEATH, "RvRContribution.OnDeath")
     -- Assists&Kills
-    RegisterEventHandler(TextLogGetUpdateEventId( "Combat" ), "RvRContribution.OnChat" )
+    RegisterEventHandler(TextLogGetUpdateEventId( "Combat" ), "RvRContribution.OnCombat" )
     --box carrying
     RegisterEventHandler(TextLogGetUpdateEventId( "Chat" ), "RvRContribution.OnChat" )
     --reset
@@ -622,11 +630,6 @@ function RvRContribution.OnInitialize()
     RegisterEventHandler(SystemData.Events.CAMPAIGN_PAIRING_UPDATED, "RvRContribution.OnPairingUpdate" )
     -- combat actions
     RegisterEventHandler( SystemData.Events.WORLD_OBJ_COMBAT_EVENT, "RvRContribution.OnCombatAction")
-    -- commands
-    if LibSlash and LibSlash.RegisterSlashCmd then
-        LibSlash.RegisterSlashCmd( "rvrcontribution", slash )
-        LibSlash.RegisterSlashCmd( "rvrc", slash )
-    end
     -- ui
     CreateWindow("RvRContribution", true)
     LabelSetText("RvRContribution", L"RvRContribution")
@@ -645,7 +648,13 @@ function RvRContribution.OnInitialize()
     --log
     TextLogCreate(Log.name, Log.id)
     TextLogSetIncrementalSaving(Log.name, true, L"logs/rvr-contribution.log")
-    TextLogSetEnabled(Log.name, true ) 
+    TextLogSetEnabled(Log.name, true )
+    -- commands
+    if LibSlash and LibSlash.RegisterSlashCmd then
+        LibSlash.RegisterSlashCmd( "rvrcontribution", slash )
+        LibSlash.RegisterSlashCmd( "rvrc", slash )
+        printHelp()
+    end
 end
 function RvRContribution.OnPairingUpdate( pairingId )
     for zone, _ in pairs(RvRZones[1]) do
@@ -714,6 +723,30 @@ function RvRContribution.OnChat(updateType, filter)
                 end
             end
         end
+    end
+end
+function RvRContribution.OnCombat(updateType, filter)
+    if updateType ~= SystemData.TextLogUpdate.ADDED then
+        return
+    end
+    if filter == SystemData.ChatLogFilters.YOUR_DMG_FROM_PC then
+        if not isInAllowedZone() then
+            return
+        end
+        if not GameData.Player.isInRvRLake then
+            return
+        end
+        local num = TextLogGetNumEntries("Combat") - 1
+        local _, _, msg = TextLogGetEntry("Combat", num);
+        if msg:match(L"^Your Guard hits you for .+ damage.$") then
+            local damage = msg:match(L"^Your Guard hits you for (.+) damage.$")
+            d(damage)
+            add('protection', tonumber(damage))
+        elseif msg:match(L"^Your Save Da Runts hits you for .+ damage.$") then
+            local damage = msg:match(L"^Your Save Da Runts hits you for (.+) damage.$")
+            d(damage)
+            add('protection', tonumber(damage))
+        end
     elseif filter == SystemData.ChatLogFilters.RENOWN then
         local num = TextLogGetNumEntries("Combat") - 1
         local _, _, msg = TextLogGetEntry("Combat", num);
@@ -758,6 +791,7 @@ function RvRContribution.OnChat(updateType, filter)
             for keepName,pairing in pairs(Keeps) do
                 if keep == keepName then
                     add('keepDefence', 1, pairing[GameData.Player.realm])
+                    resetZone(pairing[GameData.Player.realm], true)
                     found = true
                     break
                 end
