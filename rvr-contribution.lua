@@ -235,7 +235,7 @@ local Zones = {
 
     [L"Eataine"]={"Eataine","Eataine"},
     [L"Dragonwake"]={"Dragonwake","Dragonwake"},
-    [L"Caledor"]="Caledor",
+    [L"Caledor"]={"Caledor","Caledor",}
 }
 local BattlefieldObjectives = {
     [L"Stonemine Tower"]={"T1 Dwarf", "T1 Greenskin",},
