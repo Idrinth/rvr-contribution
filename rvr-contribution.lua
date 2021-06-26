@@ -72,13 +72,6 @@ local boBonus = {
     boxAssists=true,
     capture=false,
 }
-local bags = {
-    ["white"] = 400,
-    ["green"] = 600,
-    ["blue"] = 800,
-    ["purple"] = 1000,
-    ["gold"] = 1200,
-}
 local Keeps = {
     [L"Dok Karaz"]={"T2 Dwarf", "T2 Greenskin"},
     [L"Fangbreaka Swamp"]={"T2 Dwarf", "T2 Greenskin"},
@@ -221,11 +214,9 @@ local Zones = {
     [L"Thunder Mountain"]={"Thunder Mountain", "Thunder Mountain"},
     [L"Black Crag"]={"Black Crag", "Black Crag"},
 
-    [L"Nordland and Norsca"]={"T1 Empire", "T1 Chaos"},
-    [L"Norsca and Nordland"]={"T1 Empire", "T1 Chaos"},
+    [L"Norsca and Barony of Nordland"]={"T1 Empire", "T1 Chaos"},
 
     [L"Troll Country and Ostland"]={"T2 Empire", "T2 Chaos"},
-    [L"Ostland and Troll Country"]={"T2 Empire", "T2 Chaos"},
 
     [L"High Pass and Talabecland"]={"T3 Empire","T3 Chaos"},
     [L"Talabecland and High Pass"]={"T3 Empire","T3 Chaos"},
@@ -237,8 +228,7 @@ local Zones = {
     [L"The Blighted Isle and Chrace"]={"T1 Elf","T1 Elf"},
     [L"Chrace and The Blighted Isle"]={"T1 Elf","T1 Elf"},
 
-    [L"The Shadowlands and Ellyrion"]={"T2 Elf","T2 Elf"},
-    [L"Ellyrion and The Shadowlands"]={"T2 Elf","T2 Elf"},
+    [L"Shadowlands and Ellyrion"]={"T2 Elf","T2 Elf"},
 
     [L"Avelorn and Saphery"]={"T3 Elf","T3 Elf"},
     [L"Saphery and Avelorn"]={"T3 Elf","T3 Elf"},
@@ -347,6 +337,27 @@ local resses = {
     [L"Rally"]=14526,--Banner Ress
     [L"Alter Fate"]=697,--Morale 4 ress
 }
+local triesChallenge = false
+local challenges = {
+    --Challenge
+    1368,
+    1679,
+    3362,
+    3379,
+    3976,
+    3977,
+    3978,
+    3979,
+    8021,
+    8333,
+    9013,
+    9332,
+    13592,
+    13593,
+    --Bellow
+    610,
+}
+triesTankM4 = false
 local noBoxBonus = {
     ["T2 Greenskin"] = true,
     ["T2 Dwarf"] = true,
@@ -363,7 +374,22 @@ local Log = {
     name="RvRContribution",
     id=9799,
 }
-local zoneToReset = {zone="",time=0}
+local bagRoll = {
+    ["contribution"]=0,
+    ["total"]=0,
+    ["bag"]=7,
+}
+local zoneToReset = {zone="",time=0,win=nil}
+local bags = {
+    [0]="none",
+    [1]="white",
+    [2]="green",
+    [3]="blue",
+    [4]="purple",
+    [5]="silver",
+    [6]="gold",
+    [7]="unknown",
+}
 local function printHelp()
     TextLogAddEntry("Chat", SystemData.ChatLogFilters.SAY, L"RvRContribution")
     TextLogAddEntry("Chat", SystemData.ChatLogFilters.SAY, L"/rvrc alert -- toggle alert")
@@ -394,7 +420,7 @@ local function ui()
             WindowAddAnchor(window, "topleft", "RvRContribution", "topleft", 0, counter*30)
             LabelSetText(window.."Pairing", towstring(pairing))
             LabelSetText(window.."Win", towstring(math.floor(data.win)))
-            LabelSetText(window.."Loss", towstring(math.floor(data.loss or 0)))
+            LabelSetText(window.."Loss", towstring(math.floor(data.loss)))
         elseif DoesWindowExist(window) then
             DestroyWindow(window)
         end
@@ -457,23 +483,31 @@ local function slash(input)
         printHelp()
     end
 end
-local function resetZoneInternal(zone, log)
+local function resetZoneInternal(zone, isWin)
     local message = zone;
     for key,value in pairs(RvRContribution.Zones[zone]) do
-        if key ~= "used" and value ~= 0 then
+        if key == "win" and isWin == false then
+            -- no reason to print win on loss
+        elseif key == "loss" and isWin == true then
+            -- no reason to print loss on win
+        elseif key ~= "used" and value ~= 0 then
             message = message.." "..key..": "..tostring(math.floor(value))
         end
     end
-    if PQData and PQData.playerData and PQData.playerData.contribution then
-        message = message.." contribution: "..tostring(PQData.playerData.contribution)
+    if bagRoll and (bagRoll.total > 0 or bagRoll.contribution > 0) then
+        message = message.." total: "..bagRoll.total
+        message = message.." contribution: "..bagRoll.contribution
+        message = message.." bag: "..bags[bagRoll.bag]
+        bagRoll = {total=0,contribution=0,bag=7}
     end
     if message ~= zone then
         TextLogAddEntry("Chat", SystemData.ChatLogFilters.RVR, towstring(message))
-        if log then
+        if isWin ~= nil then
             TextLogAddEntry(Log.name, Log.id, towstring(message))
         end
     end
     RvRContribution.Zones[zone] = nil
+    zoneToReset={zone="",time=0,win=nil}
     local window = "RvRContribution"..zone:gsub(" ","_")
     if DoesWindowExist(window) then
         DestroyWindow(window)
@@ -482,26 +516,30 @@ local function resetZoneInternal(zone, log)
     ui()
 end
 local function resetZone(zone, log)
-    if log then
-        zoneToReset={zone=zone,time=90}
+    if log ~= nil then
+        zoneToReset={zone=zone,time=180,win=log}
         return
     end
-    resetZoneInternal(zone, log)
+    resetZoneInternal(zone)
 end
 function RvRContribution.OnUpdateReset(elapsed)
     if zoneToReset.zone == "" then
         return
     end
-    if zoneToReset.time < 0 then
-        resetZoneInternal(zoneToReset.zone, true)
-        zoneToReset={zone="",time=0}
+    if zoneToReset.time <= 0 then
+        resetZoneInternal(zoneToReset.zone, zoneToReset.win)
         return
     end
-    if PQData and PQData.playerData and PQData.playerData.contribution then
-        resetZoneInternal(zoneToReset.zone, true)
-        zoneToReset={zone="",time=0}
-    end
     zoneToReset.time = zoneToReset.time - elapsed
+    if PQData and PQData.playerData then
+        if PQData.playerData.contribution ~= nil and PQData.playerData.contribution ~= L"" and PQData.playerData.contribution ~= "" then
+            bagRoll.contribution = tonumber(PQData.playerData.contribution)
+        elseif PQData.playerData.roll ~= nil and PQData.playerData.roll > 0 then
+            bagRoll.total = PQData.playerData.roll
+            bagRoll.bag = PQData.playerData.sackType
+            resetZoneInternal(zoneToReset.zone, zoneToReset.win)
+        end
+    end
 end
 local function getTooltipAnchor()
     local mouseWin = SystemData.MouseOverWindow.name
@@ -509,9 +547,9 @@ local function getTooltipAnchor()
     local mglX,mglY = WindowGetScreenPosition(mouseWin)
     local anchor = nil
     if mglX*2 > rootWidth then
-        return { Point = "topleft",  RelativeTo = mouseWin, RelativePoint = "topright",   XOffset = -10, YOffset = 0 }
+        return { Point = "topleft", RelativeTo = mouseWin, RelativePoint = "topright", XOffset = -10, YOffset = 0 }
     end
-    return { Point = "topright",  RelativeTo = mouseWin, RelativePoint = "topleft",   XOffset = 10, YOffset = 0 }
+    return { Point = "topright", RelativeTo = mouseWin, RelativePoint = "topleft", XOffset = 10, YOffset = 0 }
 end
 function RvRContribution.OnHoverWin()
     Tooltips.CreateTextOnlyTooltip ( SystemData.MouseOverWindow.name )
@@ -668,9 +706,20 @@ function RvRContribution.OnEndCast(interupted)
         end
         triesRezz = false
     end
+    if triesChallenge then
+        if not interupted then
+            add('protection', 1000)
+        end
+        triesChallenge = false
+    end
+    if triesTankM4 then
+        if not interupted then
+            add('protection', 12000)
+        end
+        triesTankM4 = false
+    end
 end
 function RvRContribution.OnCast(abilityId)
-    d(abilityId)
     if not isInAllowedZone() then
         return
     end
@@ -682,6 +731,19 @@ function RvRContribution.OnCast(abilityId)
             triesRezz = true
             return
         end
+    end
+    if not GameData.Player.inCombat then
+        return
+    end
+    for _, id in pairs(challenges) do
+        if abilityId == id then
+            triesChallenge = true
+            return
+        end
+    end
+    if abilityId == 613 then --tank M4
+        triesTankM4 = true
+        return
     end
 end
 function RvRContribution.OnZone()
@@ -791,7 +853,7 @@ function RvRContribution.OnCombat(updateType, filter)
             for keepName,pairing in pairs(Keeps) do
                 if keep == keepName then
                     add('keepDefence', 1, pairing[GameData.Player.realm])
-                    resetZone(pairing[GameData.Player.realm], true)
+                    resetZone(pairing[GameData.Player.realm], false)
                     found = true
                     break
                 end
@@ -800,7 +862,7 @@ function RvRContribution.OnCombat(updateType, filter)
                 for zone, pairing in pairs(Zones) do
                     if keep == zone then
                         found = true
-                        resetZone(pairing[GameData.Player.realm], true)
+                        resetZone(pairing[GameData.Player.realm], false)
                         break
                     end
                 end
@@ -839,7 +901,7 @@ function RvRContribution.OnZoneUpdate(zoneId)
         if not name or not RvRContribution.Zones[name] then
             return
         end
-        resetZone(name, true)
+        resetZone(name, nil)
     end
 end
 function RvRContribution.OnUpdatePQ(elapsed)
